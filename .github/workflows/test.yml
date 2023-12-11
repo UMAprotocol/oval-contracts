@@ -1,0 +1,79 @@
+name: "Contracts CI"
+
+env:
+  FOUNDRY_PROFILE: "ci"
+
+on: [push]
+
+jobs:
+  lint:
+    defaults:
+      run:
+        working-directory: "./"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out the repo"
+        uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+
+      - name: "Lint the contracts"
+        run: "forge fmt"
+
+      - name: "Add lint summary"
+        run: |
+          echo "## Lint result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+
+  build:
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        working-directory: "./"
+    steps:
+      - name: "Check out the repo"
+        uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+
+      - name: "Build the contracts and print their size"
+        run: "forge build --sizes"
+
+      - name: "Add build summary"
+        run: |
+          echo "## Build result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+
+  test:
+    needs: ["lint", "build"]
+    defaults:
+      run:
+        working-directory: "./"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out the repo"
+        uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+
+      - name: "Show the Foundry config"
+        run: "forge config"
+
+      - name: "Run the tests"
+        env:
+          RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
+        run: "forge test --fork-url $RPC_MAINNET"
+
+      - name: "Add test summary"
+        run: |
+          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY

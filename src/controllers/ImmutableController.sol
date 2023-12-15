@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.17;
 
-import {OVAL} from "../Oval.sol";
+import {Oval} from "../Oval.sol";
 
 /**
  * @title ImmutableController providing an immutable controller.
@@ -11,7 +11,7 @@ import {OVAL} from "../Oval.sol";
  *    oracle users).
  */
 
-abstract contract ImmutableController is OVAL {
+abstract contract ImmutableController is Oval {
     uint256 private immutable LOCK_WINDOW; // The lockWindow in seconds.
     uint256 private immutable MAX_TRAVERSAL; // The maximum number of rounds to traverse when looking for historical data.
 
@@ -31,11 +31,11 @@ abstract contract ImmutableController is OVAL {
     }
 
     /**
-     * @notice Returns true if the caller is allowed to unlock the OVAL.
+     * @notice Returns true if the caller is allowed to unlock the Oval.
      * @dev This implementation simply checks if the caller is in the unlockers mapping. Custom Controllers can override
-     * this function to provide more granular control over who can unlock the OVAL.
+     * this function to provide more granular control over who can unlock the Oval.
      * @param caller The address to check.
-     * @param _lastUnlockTime The timestamp of the latest unlock to the OVAL. Might be useful in verification.
+     * @param _lastUnlockTime The timestamp of the latest unlock to the Oval. Might be useful in verification.
      */
     function canUnlock(address caller, uint256 _lastUnlockTime) public view override returns (bool) {
         return unlockers[caller];

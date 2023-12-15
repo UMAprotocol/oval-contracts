@@ -3,13 +3,13 @@ pragma solidity 0.8.17;
 
 import {DecimalLib} from "../lib/DecimalLib.sol";
 import {IAggregatorV3} from "../../interfaces/chainlink/IAggregatorV3.sol";
-import {DiamondRootOVAL} from "../../DiamondRootOval.sol";
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
 
 /**
- * @title ChainlinkDestinationAdapter contract to expose OVAL data via the standard Chainlink Aggregator interface.
+ * @title ChainlinkDestinationAdapter contract to expose Oval data via the standard Chainlink Aggregator interface.
  */
 
-abstract contract ChainlinkDestinationAdapter is DiamondRootOVAL, IAggregatorV3 {
+abstract contract ChainlinkDestinationAdapter is DiamondRootOval, IAggregatorV3 {
     uint8 public immutable override decimals;
 
     event DecimalsSet(uint8 indexed decimals);

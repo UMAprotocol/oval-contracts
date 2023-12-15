@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.17;
 
-import {DiamondRootOVAL} from "../../src/DiamondRootOval.sol";
+import {DiamondRootOval} from "../../src/DiamondRootOval.sol";
 
-abstract contract MockSourceAdapter is DiamondRootOVAL {
+abstract contract MockSourceAdapter is DiamondRootOval {
     uint8 public sourceDecimals;
 
     struct RoundData {

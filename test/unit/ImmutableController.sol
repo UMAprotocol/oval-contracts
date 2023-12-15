@@ -14,7 +14,7 @@ contract TestImmutableController is ImmutableController, MockSourceAdapter, Base
     {}
 }
 
-contract OVALUnlockLatestValue is CommonTest {
+contract OvalUnlockLatestValue is CommonTest {
     uint8 decimals = 8;
     uint256 lockWindow = 60;
     uint256 maxTraversal = 10;

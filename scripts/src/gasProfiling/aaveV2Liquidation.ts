@@ -12,8 +12,8 @@ import {
   TenderlySimulationResult,
 } from "../TenderlyHelpers/TenderlySimulation";
 import { UniswapAnchoredViewDestinationAdapter__factory } from "../../contract-types";
-// Have to import TestedOVAL manually since it is not unique.
-import { TestedOVAL__factory } from "../../contract-types/factories/AaveV2.Liquidation.sol/TestedOVAL__factory";
+// Have to import TestedOval manually since it is not unique.
+import { TestedOval__factory } from "../../contract-types/factories/AaveV2.Liquidation.sol/TestedOval__factory";
 
 // Common constants.
 const blockNumber = 17937311;
@@ -91,9 +91,9 @@ const regularAaveV2Liquidation = async (): Promise<number> => {
   return simulation.gasUsed;
 };
 
-const OVALAaveV2Liquidation = async (): Promise<number> => {
+const OvalAaveV2Liquidation = async (): Promise<number> => {
   // Create and share new fork (delete the old one if it exists).
-  const alias = "OVAL AAVE V2 Liquidation";
+  const alias = "Oval AAVE V2 Liquidation";
   const description =
     "Genereated: " + utils.keccak256(utils.toUtf8Bytes(alias));
   const existingFork = await findForkByDescription(description);
@@ -114,37 +114,37 @@ const OVALAaveV2Liquidation = async (): Promise<number> => {
   const ownerSigner = provider.getSigner(ownerAddress);
   const forkTimestamp = (await provider.getBlock(blockNumber)).timestamp;
 
-  // Deploy OVAL.
-  const testedOVALFactory = new TestedOVAL__factory(ownerSigner);
-  const testedOVAL = await testedOVALFactory.deploy(
+  // Deploy Oval.
+  const testedOvalFactory = new TestedOval__factory(ownerSigner);
+  const testedOval = await testedOvalFactory.deploy(
     "0x8e0b7e6062272B5eF4524250bFFF8e5Bd3497757",
     18
   );
-  await testedOVAL.deployTransaction.wait();
+  await testedOval.deployTransaction.wait();
   fork = await getTenderlyFork(fork.id); // Refresh to get head id since we submitted tx through RPC.
   if (!fork.headId) throw new Error("Fork head id not found.");
-  await setForkSimulationDescription(fork.id, fork.headId, "Deploy OVAL");
+  await setForkSimulationDescription(fork.id, fork.headId, "Deploy Oval");
 
-  // Enable unlocker on TestedOVAL.
-  const setUnlockerInput = testedOVALFactory.interface.encodeFunctionData(
+  // Enable unlocker on TestedOval.
+  const setUnlockerInput = testedOvalFactory.interface.encodeFunctionData(
     "setUnlocker",
     [unlockerAddress, true]
   );
   let simulation = await simulateTenderlyTx({
     chainId,
     from: ownerAddress,
-    to: testedOVAL.address,
+    to: testedOval.address,
     input: setUnlockerInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: fork.headId },
-    description: "Enable unlocker on OVAL",
+    description: "Enable unlocker on Oval",
   });
 
-  // setOVALAsAaveSource
+  // setOvalAsAaveSource
   const aaveOracleInterface = new utils.Interface(aaveOracleAbi);
   const aaveOracleCallData = aaveOracleInterface.encodeFunctionData(
     "setAssetSources",
-    [["0x57Ab1ec28D129707052df4dF418D58a2D46d5f51"], [testedOVAL.address]]
+    [["0x57Ab1ec28D129707052df4dF418D58a2D46d5f51"], [testedOval.address]]
   );
 
   simulation = await simulateTenderlyTx({
@@ -154,20 +154,20 @@ const OVALAaveV2Liquidation = async (): Promise<number> => {
     input: aaveOracleCallData,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Change OVAL as Aave source",
+    description: "Change Oval as Aave source",
   });
 
   // Unlock latest value.
   const unlockLatestValueInput =
-    testedOVALFactory.interface.encodeFunctionData("unlockLatestValue");
+    testedOvalFactory.interface.encodeFunctionData("unlockLatestValue");
   simulation = await simulateTenderlyTx({
     chainId,
     from: unlockerAddress,
-    to: testedOVAL.address,
+    to: testedOval.address,
     input: unlockLatestValueInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Unlock latest value on OVAL",
+    description: "Unlock latest value on Oval",
   });
 
   // Open user position.
@@ -184,8 +184,8 @@ export const aaveV2Liquidation = async () => {
   console.log("AAVE V2 Liquidation gas comparison with unlock:\n");
 
   const regularAaveV2LiquidationGas = await regularAaveV2Liquidation();
-  const OVALAaveV2LiquidationGas = await OVALAaveV2Liquidation();
-  const gasDiff = OVALAaveV2LiquidationGas - regularAaveV2LiquidationGas;
+  const OvalAaveV2LiquidationGas = await OvalAaveV2Liquidation();
+  const gasDiff = OvalAaveV2LiquidationGas - regularAaveV2LiquidationGas;
 
   console.log("Gas difference: " + gasDiff);
 };

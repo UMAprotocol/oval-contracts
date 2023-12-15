@@ -3,14 +3,14 @@ pragma solidity 0.8.17;
 
 import {DecimalLib} from "../lib/DecimalLib.sol";
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
-import {DiamondRootOVAL} from "../../DiamondRootOval.sol";
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
 
 /**
- * @title ChainlinkSourceAdapter contract to read data from Chainlink aggregator and standardize it for OVAL.
+ * @title ChainlinkSourceAdapter contract to read data from Chainlink aggregator and standardize it for Oval.
  * @dev Can fetch information from Chainlink source at a desired timestamp for historic lookups.
  */
 
-abstract contract ChainlinkSourceAdapter is DiamondRootOVAL {
+abstract contract ChainlinkSourceAdapter is DiamondRootOval {
     IAggregatorV3Source public immutable CHAINLINK_SOURCE;
     uint8 private immutable SOURCE_DECIMALS;
 

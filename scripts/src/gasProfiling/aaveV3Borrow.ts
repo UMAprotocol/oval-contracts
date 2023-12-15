@@ -11,8 +11,8 @@ import {
   TenderlySimulationResult,
   simulateTenderlyTx,
 } from "../TenderlyHelpers/TenderlySimulation";
-// Have to import TestedOVAL manually since it is not unique.
-import { TestedOVAL__factory } from "../../contract-types/factories/AaveV3.Liquidation.sol/TestedOVAL__factory";
+// Have to import TestedOval manually since it is not unique.
+import { TestedOval__factory } from "../../contract-types/factories/AaveV3.Liquidation.sol/TestedOval__factory";
 
 // Common constants.
 const blockNumber = 18427678;
@@ -74,9 +74,9 @@ const regularAaveV3Borrow = async (): Promise<number> => {
   return simulation.gasUsed;
 };
 
-const OVALAaveV3Borrow = async (): Promise<number> => {
+const OvalAaveV3Borrow = async (): Promise<number> => {
   // Create and share new fork (delete the old one if it exists).
-  const alias = "OVAL AAVE V3 Borrow";
+  const alias = "Oval AAVE V3 Borrow";
   const description =
     "Genereated: " + utils.keccak256(utils.toUtf8Bytes(alias));
   const existingFork = await findForkByDescription(description);
@@ -97,37 +97,37 @@ const OVALAaveV3Borrow = async (): Promise<number> => {
   const ownerSigner = provider.getSigner(ownerAddress);
   const forkTimestamp = (await provider.getBlock(blockNumber)).timestamp;
 
-  // Deploy OVAL.
-  const testedOVALFactory = new TestedOVAL__factory(ownerSigner);
-  const testedOVAL = await testedOVALFactory.deploy(
+  // Deploy Oval.
+  const testedOvalFactory = new TestedOval__factory(ownerSigner);
+  const testedOval = await testedOvalFactory.deploy(
     "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
     8
   );
-  await testedOVAL.deployTransaction.wait();
+  await testedOval.deployTransaction.wait();
   fork = await getTenderlyFork(fork.id); // Refresh to get head id since we submitted tx through RPC.
   if (!fork.headId) throw new Error("Fork head id not found.");
-  await setForkSimulationDescription(fork.id, fork.headId, "Deploy OVAL");
+  await setForkSimulationDescription(fork.id, fork.headId, "Deploy Oval");
 
-  // Enable unlocker on TestedOVAL.
-  const setUnlockerInput = testedOVALFactory.interface.encodeFunctionData(
+  // Enable unlocker on TestedOval.
+  const setUnlockerInput = testedOvalFactory.interface.encodeFunctionData(
     "setUnlocker",
     [unlockerAddress, true]
   );
   let simulation = await simulateTenderlyTx({
     chainId,
     from: ownerAddress,
-    to: testedOVAL.address,
+    to: testedOval.address,
     input: setUnlockerInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: fork.headId },
-    description: "Enable unlocker on OVAL",
+    description: "Enable unlocker on Oval",
   });
 
-  // setOVALAsAaveSource
+  // setOvalAsAaveSource
   const aaveOracleInterface = new utils.Interface(aaveOracleAbi);
   const aaveOracleCallData = aaveOracleInterface.encodeFunctionData(
     "setAssetSources",
-    [["0xdac17f958d2ee523a2206206994597c13d831ec7"], [testedOVAL.address]]
+    [["0xdac17f958d2ee523a2206206994597c13d831ec7"], [testedOval.address]]
   );
 
   simulation = await simulateTenderlyTx({
@@ -137,20 +137,20 @@ const OVALAaveV3Borrow = async (): Promise<number> => {
     input: aaveOracleCallData,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Change OVAL as Aave source",
+    description: "Change Oval as Aave source",
   });
 
   // Unlock latest value.
   const unlockLatestValueInput =
-    testedOVALFactory.interface.encodeFunctionData("unlockLatestValue");
+    testedOvalFactory.interface.encodeFunctionData("unlockLatestValue");
   simulation = await simulateTenderlyTx({
     chainId,
     from: unlockerAddress,
-    to: testedOVAL.address,
+    to: testedOval.address,
     input: unlockLatestValueInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Unlock latest value on OVAL",
+    description: "Unlock latest value on Oval",
   });
 
   // Open user position.
@@ -167,8 +167,8 @@ export const aaveV3Borrow = async () => {
   console.log("AAVE V3 Borrow gas comparison with unlock:\n");
 
   const regularAaveV3BorrowGas = await regularAaveV3Borrow();
-  const OVALAaveV3BorrowGas = await OVALAaveV3Borrow();
-  const gasDiff = OVALAaveV3BorrowGas - regularAaveV3BorrowGas;
+  const OvalAaveV3BorrowGas = await OvalAaveV3Borrow();
+  const gasDiff = OvalAaveV3BorrowGas - regularAaveV3BorrowGas;
 
   console.log("Gas difference: " + gasDiff);
 };

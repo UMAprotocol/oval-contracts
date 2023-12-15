@@ -2,10 +2,10 @@
 pragma solidity 0.8.17;
 
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {DiamondRootOVAL} from "./DiamondRootOval.sol";
+import {DiamondRootOval} from "./DiamondRootOval.sol";
 
 /**
- * @title OVAL contract to provide permissioned updating at the execution of an MEV-share auction.
+ * @title Oval contract to provide permissioned updating at the execution of an MEV-share auction.
  * @dev This contract works by conditionally returning a stale value oracle price from the source adapter until a
  * permissioned actor calls the unlockLatestValue function. The call to unlockLatestValue is submitted via an MEV-share
  * auction and will be backrun by the winner of the auction. The backrunner has access to the most recent newly unlocked
@@ -16,8 +16,8 @@ import {DiamondRootOVAL} from "./DiamondRootOval.sol";
  * @custom:security-contact bugs@umaproject.org
  */
 
-abstract contract OVAL is DiamondRootOVAL {
-    uint256 public lastUnlockTime; // Timestamp of the latest unlock to the OVAL.
+abstract contract Oval is DiamondRootOval {
+    uint256 public lastUnlockTime; // Timestamp of the latest unlock to the Oval.
 
     /**
      * @notice Function called by permissioned actor to unlock the latest value as part of the MEV-share auction flow.
@@ -28,7 +28,7 @@ abstract contract OVAL is DiamondRootOVAL {
     function unlockLatestValue() public {
         require(canUnlock(msg.sender, lastUnlockTime), "Controller blocked: canUnlock");
 
-        snapshotData(); // If the source connected to this OVAL needs to snapshot data, do it here. Else, no op.
+        snapshotData(); // If the source connected to this Oval needs to snapshot data, do it here. Else, no op.
 
         lastUnlockTime = block.timestamp;
 

@@ -1,6 +1,6 @@
-# OVAL scripts
+# Oval scripts
 
-This package contains scripts for gas profiling of OVAL.
+This package contains scripts for gas profiling of Oval.
 
 ## Installation
 

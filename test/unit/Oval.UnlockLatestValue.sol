@@ -3,48 +3,48 @@ pragma solidity 0.8.17;
 
 import {CommonTest} from "../Common.sol";
 import {BaseController} from "../../src/controllers/BaseController.sol";
-import {OVAL} from "../../src/Oval.sol";
+import {Oval} from "../../src/Oval.sol";
 import {BaseDestinationAdapter} from "../../src/adapters/destination-adapters/BaseDestinationAdapter.sol";
 import {MockSourceAdapter} from "../mocks/MockSourceAdapter.sol";
 
-contract TestOVAL is BaseController, MockSourceAdapter, BaseDestinationAdapter {
+contract TestOval is BaseController, MockSourceAdapter, BaseDestinationAdapter {
     constructor(uint8 decimals) MockSourceAdapter(decimals) BaseController() BaseDestinationAdapter() {}
 }
 
-contract OVALUnlockLatestValue is CommonTest {
+contract OvalUnlockLatestValue is CommonTest {
     int256 initialPrice = 1895 * 1e18;
     uint256 initialTimestamp = 1690000000;
 
     int256 newAnswer = 1900 * 1e18;
     uint256 newTimestamp = initialTimestamp + 1;
 
-    TestOVAL oval;
+    TestOval oval;
 
     function setUp() public {
         vm.warp(initialTimestamp);
 
         vm.startPrank(owner);
-        oval = new TestOVAL(18);
+        oval = new TestOval(18);
         oval.setUnlocker(permissionedUnlocker, true);
         vm.stopPrank();
 
         oval.publishRoundData(initialPrice, initialTimestamp);
     }
 
-    function verifyOVALMatchesOVAL() public {
+    function verifyOvalMatchesOval() public {
         (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
         assertTrue(latestAnswer == oval.latestAnswer() && latestTimestamp == oval.latestTimestamp());
     }
 
-    function syncOVALWithOVAL() public {
+    function syncOvalWithOval() public {
         assertTrue(oval.canUnlock(permissionedUnlocker, oval.latestTimestamp()));
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
     }
 
     function testUnlockWithNoDiffUpdatesUnlockTimestamp() public {
-        syncOVALWithOVAL();
+        syncOvalWithOval();
         assertTrue(oval.lastUnlockTime() == block.timestamp);
 
         // Apply an unlock with no diff in source adapter.
@@ -55,18 +55,18 @@ contract OVALUnlockLatestValue is CommonTest {
 
         // Check that the unlock timestamp was updated and that the answer and timestamp are unchanged.
         assertTrue(oval.lastUnlockTime() == unlockTimestamp);
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
     }
 
     function testUnlockerCanUnlockLatestValue() public {
-        syncOVALWithOVAL();
+        syncOvalWithOval();
 
         oval.publishRoundData(newAnswer, newTimestamp);
         vm.warp(newTimestamp);
 
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
         (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
         assertTrue(latestAnswer == newAnswer && latestTimestamp == newTimestamp);
 
@@ -75,11 +75,11 @@ contract OVALUnlockLatestValue is CommonTest {
         oval.publishRoundData(newAnswer + 1, newTimestamp + 2);
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
     }
 
     function testNonUnlockerCannotUnlockLatestValue() public {
-        syncOVALWithOVAL();
+        syncOvalWithOval();
 
         oval.publishRoundData(newAnswer, newTimestamp);
         vm.warp(newTimestamp);
@@ -93,7 +93,7 @@ contract OVALUnlockLatestValue is CommonTest {
     }
 
     function testUpdatesWithinLockWindow() public {
-        syncOVALWithOVAL();
+        syncOvalWithOval();
 
         // Advance time to within the lock window and update the source.
         uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
@@ -107,11 +107,11 @@ contract OVALUnlockLatestValue is CommonTest {
         // After updating we should return the new values.
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
     }
 
     function testNoUpdatesPastLockWindow() public {
-        syncOVALWithOVAL();
+        syncOvalWithOval();
         uint256 unlockTimestamp = block.timestamp;
 
         uint256 beforeOEVLockWindow = unlockTimestamp + 59; // Default lock window is 10 minutes.
@@ -132,11 +132,11 @@ contract OVALUnlockLatestValue is CommonTest {
         // Advancing time past the new lock window should pass through source values.
         uint256 pastSourceLockWindow = beforeOEVLockWindow + 69;
         vm.warp(pastSourceLockWindow);
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
     }
 
     function testRepeatedUpdates() public {
-        syncOVALWithOVAL();
+        syncOvalWithOval();
 
         // Advance time to within the lock window and update the source.
         uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
@@ -148,7 +148,7 @@ contract OVALUnlockLatestValue is CommonTest {
         assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp);
 
         // Sync and verify updated values.
-        syncOVALWithOVAL();
+        syncOvalWithOval();
 
         // Advance time to within the lock window and update the source.
         uint256 nextBeforeLockWindow = block.timestamp + oval.lockWindow() - 1;

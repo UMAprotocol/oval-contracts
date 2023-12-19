@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.17;
 
-import {OVAL} from "../../src/Oval.sol";
+import {Oval} from "../../src/Oval.sol";
 import {BaseDestinationAdapter} from "../../src/adapters/destination-adapters/BaseDestinationAdapter.sol";
 import {ChainlinkDestinationAdapter} from "../../src/adapters/destination-adapters/ChainlinkDestinationAdapter.sol";
 import {BaseController} from "../../src/controllers/BaseController.sol";
 import {CommonTest} from "../Common.sol";
 import {MockSourceAdapter} from "../mocks/MockSourceAdapter.sol";
 
-contract TestOVAL is BaseController, MockSourceAdapter, ChainlinkDestinationAdapter {
+contract TestOval is BaseController, MockSourceAdapter, ChainlinkDestinationAdapter {
     constructor(uint8 decimals) BaseController() MockSourceAdapter(decimals) ChainlinkDestinationAdapter(decimals) {}
 }
 
-contract OVALChainlinkDestinationAdapter is CommonTest {
+contract OvalChainlinkDestinationAdapter is CommonTest {
     int256 initialPrice = 1895 * 1e18;
     uint256 initialTimestamp = 1690000000;
 
@@ -23,20 +23,20 @@ contract OVALChainlinkDestinationAdapter is CommonTest {
 
     int256 internalDecimalsToSourceDecimals = 1e10;
 
-    TestOVAL oval;
+    TestOval oval;
 
     function setUp() public {
         vm.warp(initialTimestamp);
 
         vm.startPrank(owner);
-        oval = new TestOVAL(sourceOracleDecimals);
+        oval = new TestOval(sourceOracleDecimals);
         oval.setUnlocker(permissionedUnlocker, true);
         vm.stopPrank();
 
         oval.publishRoundData(initialPrice, initialTimestamp);
     }
 
-    function verifyOVALMatchesOVAL() public {
+    function verifyOvalMatchesOval() public {
         (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
         assertTrue(
             latestAnswer / internalDecimalsToSourceDecimals == oval.latestAnswer()
@@ -44,18 +44,18 @@ contract OVALChainlinkDestinationAdapter is CommonTest {
         );
     }
 
-    function syncOVALWithOVAL() public {
+    function syncOvalWithOval() public {
         assertTrue(oval.canUnlock(permissionedUnlocker, oval.latestTimestamp()));
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
     }
 
     function testUpdatesWithinLockWindow() public {
         // Publish an update to the mock source adapter.
         oval.publishRoundData(newAnswer, newTimestamp);
 
-        syncOVALWithOVAL();
+        syncOvalWithOval();
         assertTrue(oval.lastUnlockTime() == block.timestamp);
 
         // Apply an unlock with no diff in source adapter.
@@ -66,12 +66,12 @@ contract OVALChainlinkDestinationAdapter is CommonTest {
 
         // Check that the update timestamp was unlocked and that the answer and timestamp are unchanged.
         assertTrue(oval.lastUnlockTime() == unlockTimestamp);
-        verifyOVALMatchesOVAL();
+        verifyOvalMatchesOval();
 
         (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
             oval.latestRoundData();
 
-        // Check that OVAL return the correct values scaled to the source oracle decimals.
+        // Check that Oval return the correct values scaled to the source oracle decimals.
         assertTrue(roundId == 1);
         assertTrue(answer == newAnswer / internalDecimalsToSourceDecimals);
         assertTrue(startedAt == newTimestamp);

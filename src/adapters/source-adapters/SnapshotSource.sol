@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.17;
 
-import {DiamondRootOVAL} from "../../DiamondRootOval.sol";
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
 
 /**
  * @title SnapshotSource contract to be used in conjunction with a source adapter that needs to snapshot historic data.
  */
 
-abstract contract SnapshotSource is DiamondRootOVAL {
+abstract contract SnapshotSource is DiamondRootOval {
     // Snapshot records the historical answer at a specific timestamp.
     struct Snapshot {
         int256 answer;

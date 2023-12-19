@@ -8,7 +8,7 @@ import {IUniswapAnchoredView} from "../../interfaces/compound/IUniswapAnchoredVi
 import {IValidatorProxy} from "../../interfaces/compound/IValidatorProxy.sol";
 
 /**
- * @title UniswapAnchoredViewSourceAdapter contract to read data from UniswapAnchoredView and standardize it for OVAL.
+ * @title UniswapAnchoredViewSourceAdapter contract to read data from UniswapAnchoredView and standardize it for Oval.
  *
  */
 

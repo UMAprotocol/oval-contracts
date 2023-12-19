@@ -5,24 +5,24 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import {DecimalLib} from "../lib/DecimalLib.sol";
 import {IUniswapAnchoredView} from "../../interfaces/compound/IUniswapAnchoredView.sol";
-import {IOVAL} from "../../interfaces/IOval.sol";
+import {IOval} from "../../interfaces/IOval.sol";
 
 /**
- * @title UniswapAnchoredViewDestinationAdapter contract to expose OVAL data via the UniswapAnchoredView interface.
- * @dev Note that this contract is diffrent to most other destination adapters in that it is not an instance of OVAL
- * via the DiamondRootOVAL contract & inhieretence structure. Rather, this contract has a number of sub OVALs
+ * @title UniswapAnchoredViewDestinationAdapter contract to expose Oval data via the UniswapAnchoredView interface.
+ * @dev Note that this contract is diffrent to most other destination adapters in that it is not an instance of Oval
+ * via the DiamondRootOval contract & inhieretence structure. Rather, this contract has a number of sub Ovals
  * that it uses to return the correct price for each cToken. This is needed as the UniswapAnchoredView interface is a
  * one to many relationship with cTokens, and so we need to be able to return the correct price for each cToken.
  */
 
 contract UniswapAnchoredViewDestinationAdapter is Ownable, IUniswapAnchoredView {
-    mapping(address => address) public cTokenToOVAL;
+    mapping(address => address) public cTokenToOval;
     mapping(address => uint8) public cTokenToDecimal;
 
     IUniswapAnchoredView public immutable uniswapAnchoredViewSource;
 
     event BaseSourceSet(address indexed source);
-    event OVALSet(address indexed cToken, uint8 indexed decimals, address indexed oval);
+    event OvalSet(address indexed cToken, uint8 indexed decimals, address indexed oval);
 
     constructor(IUniswapAnchoredView _source) Ownable() {
         uniswapAnchoredViewSource = _source;
@@ -31,19 +31,19 @@ contract UniswapAnchoredViewDestinationAdapter is Ownable, IUniswapAnchoredView 
     }
 
     /**
-     * @notice Enables the owner to set mapping between cTokens and OVALs. This is done for each supported cToken.
-     * @param cToken The cToken to set the OVAL for.
-     * @param oval The OVAL to set for the cToken.
+     * @notice Enables the owner to set mapping between cTokens and Ovals. This is done for each supported cToken.
+     * @param cToken The cToken to set the Oval for.
+     * @param oval The Oval to set for the cToken.
      */
-    function setOVAL(address cToken, address oval) public onlyOwner {
-        cTokenToOVAL[cToken] = oval;
+    function setOval(address cToken, address oval) public onlyOwner {
+        cTokenToOval[cToken] = oval;
         IUniswapAnchoredView.TokenConfig memory tokenConfig = uniswapAnchoredViewSource.getTokenConfigByCToken(cToken);
 
         // Price feed in UniswapAnchoredView is scaled to (36 - underlying decimals).
         uint8 decimals = 36 - DecimalLib.deriveDecimals(tokenConfig.baseUnit);
         cTokenToDecimal[cToken] = decimals;
 
-        emit OVALSet(cToken, decimals, oval);
+        emit OvalSet(cToken, decimals, oval);
     }
 
     /**
@@ -54,10 +54,10 @@ contract UniswapAnchoredViewDestinationAdapter is Ownable, IUniswapAnchoredView 
      * @return The price of the underlying asset of the cToken.
      */
     function getUnderlyingPrice(address cToken) external view returns (uint256) {
-        if (cTokenToOVAL[cToken] == address(0)) {
+        if (cTokenToOval[cToken] == address(0)) {
             return uniswapAnchoredViewSource.getUnderlyingPrice(cToken);
         }
-        (int256 answer,) = IOVAL(cTokenToOVAL[cToken]).internalLatestData();
+        (int256 answer,) = IOval(cTokenToOval[cToken]).internalLatestData();
         return DecimalLib.convertDecimals(uint256(answer), 18, cTokenToDecimal[cToken]);
     }
 

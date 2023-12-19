@@ -3,10 +3,10 @@ pragma solidity 0.8.17;
 
 import {CommonTest} from "../Common.sol";
 import {MockSnapshotSourceAdapter} from "../mocks/MockSnapshotSourceAdapter.sol";
-import {OVAL} from "../../src/Oval.sol";
+import {Oval} from "../../src/Oval.sol";
 import {BaseController} from "../../src/controllers/BaseController.sol";
 
-contract TestSnapshotSource is MockSnapshotSourceAdapter, OVAL, BaseController {}
+contract TestSnapshotSource is MockSnapshotSourceAdapter, Oval, BaseController {}
 
 contract SnapshotSourceSnapshotDataTest is CommonTest {
     TestSnapshotSource snapshotSource;

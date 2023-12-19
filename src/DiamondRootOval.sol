@@ -3,15 +3,15 @@ pragma solidity 0.8.17;
 
 import {IBaseOracleAdapter} from "./interfaces/IBaseOracleAdapter.sol";
 import {IBaseController} from "./interfaces/IBaseController.sol";
-import {IOVAL} from "./interfaces/IOval.sol";
+import {IOval} from "./interfaces/IOval.sol";
 
 /**
- * @title DiamondRootOVAL contract to provide base functions that the three components of the OVAL contract system
- * need. They are exposed here to simplify the inheritance structure of the OVAL contract system and to enable easier
+ * @title DiamondRootOval contract to provide base functions that the three components of the Oval contract system
+ * need. They are exposed here to simplify the inheritance structure of the Oval contract system and to enable easier
  * composability and extensibility at the integration layer, enabling arbitrary combinations of sources and destinations.
  */
 
-abstract contract DiamondRootOVAL is IBaseController, IOVAL, IBaseOracleAdapter {
+abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter {
     /**
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
@@ -30,7 +30,7 @@ abstract contract DiamondRootOVAL is IBaseController, IOVAL, IBaseOracleAdapter 
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) public view virtual returns (int256, uint256);
 
     /**
-     * @notice Returns the latest data from the source. Depending on when the OVAL was last unlocked this might
+     * @notice Returns the latest data from the source. Depending on when the Oval was last unlocked this might
      * return an slightly stale value to protect the OEV from being stolen by a front runner.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
@@ -43,7 +43,7 @@ abstract contract DiamondRootOVAL is IBaseController, IOVAL, IBaseOracleAdapter 
     function snapshotData() public virtual;
 
     /**
-     * @notice Permissioning function to control who can unlock the OVAL.
+     * @notice Permissioning function to control who can unlock the Oval.
      */
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual returns (bool);
 

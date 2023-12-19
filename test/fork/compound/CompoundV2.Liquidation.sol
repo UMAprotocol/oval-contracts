@@ -24,7 +24,7 @@ interface Usdc is IERC20 {
 
 // Juicy liquidation: https://etherscan.io/tx/0xb955a078b9b2a73e111033a3e77142b5768f5729285279d56eff641e43060555
 
-contract TestedOVAL is BaseController, UniswapAnchoredViewSourceAdapter, BaseDestinationAdapter {
+contract TestedOval is BaseController, UniswapAnchoredViewSourceAdapter, BaseDestinationAdapter {
     constructor(IUniswapAnchoredView source, address cToken)
         UniswapAnchoredViewSourceAdapter(source, cToken)
         BaseController()
@@ -53,7 +53,7 @@ contract CompoundV2LiquidationTest is CommonTest {
     IAccessControlledAggregatorV3 sourceChainlinkOracle;
     UniswapAnchoredViewDestinationAdapter DestinationAdapter;
     UniswapAnchoredViewSourceAdapter sourceAdapter;
-    TestedOVAL oval;
+    TestedOval oval;
 
     function setUp() public {
         vm.createSelectFork("mainnet", oracleUpdateBlock - 1); // Rolling to the block before the oracle update to start off all tests.
@@ -81,8 +81,8 @@ contract CompoundV2LiquidationTest is CommonTest {
     }
 
     function testCanReplaceSourceAndExecuteLiquidation() public {
-        createOVALAndUnlock();
-        setOVALAsCompoundSource();
+        createOvalAndUnlock();
+        setOvalAsCompoundSource();
         updateChainlinkToLatestValue();
 
         // insure config is correct
@@ -95,8 +95,8 @@ contract CompoundV2LiquidationTest is CommonTest {
         uint256 borrowBalance = cUSDC.borrowBalanceCurrent(borrower);
         uint256 liquidatbleAmount = borrowBalance / 2; // 50% liquidation threshold is the max in Compound.
 
-        // At this point the OVAL has a stale price in it. Initiating a liquidation should be a no op. Source oracle
-        // should have a different price to OVAL.
+        // At this point the Oval has a stale price in it. Initiating a liquidation should be a no op. Source oracle
+        // should have a different price to Oval.
         uint256 ovalPriceBefore = uint256(getSetCompoundOracle().getUnderlyingPrice(address(cETH)));
         uint256 sourcePriceBefore = uint256(compoundOracle.getUnderlyingPrice(address(cETH)));
         assertTrue(ovalPriceBefore != sourcePriceBefore);
@@ -105,13 +105,13 @@ contract CompoundV2LiquidationTest is CommonTest {
         cUSDC.liquidateBorrow(borrower, liquidatbleAmount, address(cETH));
         assertTrue(cUSDC.borrowBalanceCurrent(borrower) == borrowBalance);
 
-        // Unlock the OVAL then initiate the liquidation. This time, we should be able to liquidate as per usual.
+        // Unlock the Oval then initiate the liquidation. This time, we should be able to liquidate as per usual.
 
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
 
         uint256 ovalPriceAfter = uint256(getSetCompoundOracle().getUnderlyingPrice(address(cETH)));
-        assertTrue(ovalPriceAfter < ovalPriceBefore); // Price has changed in OVAL due to calling unlockLatestValue
+        assertTrue(ovalPriceAfter < ovalPriceBefore); // Price has changed in Oval due to calling unlockLatestValue
 
         vm.prank(liquidator);
         cUSDC.liquidateBorrow(borrower, liquidatbleAmount, address(cETH));
@@ -120,9 +120,9 @@ contract CompoundV2LiquidationTest is CommonTest {
         assertTrue(cETH.balanceOf(liquidator) > 0); // Some amount of cETH received from the liquidation
     }
 
-    function testOVALGracefullyFallsBackToSourceIfNoUnlockApplied() public {
-        createOVALAndUnlock();
-        setOVALAsCompoundSource();
+    function testOvalGracefullyFallsBackToSourceIfNoUnlockApplied() public {
+        createOvalAndUnlock();
+        setOvalAsCompoundSource();
         updateChainlinkToLatestValue();
 
         vm.prank(sourceChainlinkOracle.owner());
@@ -132,15 +132,15 @@ contract CompoundV2LiquidationTest is CommonTest {
         uint256 borrowBalance = cUSDC.borrowBalanceCurrent(borrower);
         uint256 liquidatbleAmount = borrowBalance / 2; // 50% liquidation threshold is the max in Compound.
 
-        // At this point the OVAL has a stale price in it. Initiating a liquidation should be a no op.
+        // At this point the Oval has a stale price in it. Initiating a liquidation should be a no op.
         seedLiquidator();
         vm.prank(liquidator);
         cUSDC.liquidateBorrow(borrower, liquidatbleAmount, address(cETH));
         assertTrue(cUSDC.borrowBalanceCurrent(borrower) == borrowBalance);
 
-        // To show that we can gracefully fall back to the source oracle, we will not unlock the OVAL and
-        // rather advance time past the lock window. This will cause the OVAL to fall back to the source
-        // oracle and the liquidation will succeed without the OVAL being unlocked.
+        // To show that we can gracefully fall back to the source oracle, we will not unlock the Oval and
+        // rather advance time past the lock window. This will cause the Oval to fall back to the source
+        // oracle and the liquidation will succeed without the Oval being unlocked.
         vm.warp(block.timestamp + oval.lockWindow() + 1);
 
         // We should see the accessors return the same values, even though the internal values are different.
@@ -149,7 +149,7 @@ contract CompoundV2LiquidationTest is CommonTest {
             "2"
         );
 
-        // Now, run the liquidation. It should succeed without the OVAL being unlocked due to the fallback.
+        // Now, run the liquidation. It should succeed without the Oval being unlocked due to the fallback.
         vm.prank(liquidator);
         cUSDC.liquidateBorrow(borrower, liquidatbleAmount, address(cETH));
         assertTrue(cUSDC.borrowBalanceCurrent(borrower) < borrowBalance); // Debt should not changed. Liquidation was a no op.
@@ -168,17 +168,17 @@ contract CompoundV2LiquidationTest is CommonTest {
         usdcDebtAsset.approve(address(cUSDC), amountToMint);
     }
 
-    function createOVALAndUnlock() public {
+    function createOvalAndUnlock() public {
         DestinationAdapter = new UniswapAnchoredViewDestinationAdapter(getSetCompoundOracle());
-        oval = new TestedOVAL(getSetCompoundOracle(), address(cETH));
-        DestinationAdapter.setOVAL(address(cETH), address(oval));
-        assertTrue(DestinationAdapter.cTokenToOVAL(address(cETH)) == address(oval));
+        oval = new TestedOval(getSetCompoundOracle(), address(cETH));
+        DestinationAdapter.setOval(address(cETH), address(oval));
+        assertTrue(DestinationAdapter.cTokenToOval(address(cETH)) == address(oval));
         assertTrue(DestinationAdapter.cTokenToDecimal(address(cETH)) == 18); // (36 - 18 ETH decimals).
         oval.setUnlocker(permissionedUnlocker, true);
         sourceChainlinkOracle = IAccessControlledAggregatorV3(address(oval.aggregator()));
         vm.prank(sourceChainlinkOracle.owner());
         sourceChainlinkOracle.addAccess(address(oval));
-        // pull the latest price into the OVAL and check it matches with the source oracle.
+        // pull the latest price into the Oval and check it matches with the source oracle.
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
         assertTrue(
@@ -186,14 +186,14 @@ contract CompoundV2LiquidationTest is CommonTest {
         );
     }
 
-    function setOVALAsCompoundSource() public {
+    function setOvalAsCompoundSource() public {
         vm.prank(comptroller.admin());
         comptroller._setPriceOracle(address(DestinationAdapter));
         assertTrue(comptroller.oracle() == address(DestinationAdapter));
     }
 
     function updateChainlinkToLatestValue() public {
-        // Apply the chainlink update within chainlink. This wont affect the OVAL price until it is unlocked.
+        // Apply the chainlink update within chainlink. This wont affect the Oval price until it is unlocked.
         uint256 answerFromOvalBefore = uint256(getSetCompoundOracle().getUnderlyingPrice(address(cETH)));
         uint256 answerFromChainlinkBefore = uint256(compoundOracle.getUnderlyingPrice(address(cETH)));
         vm.rollFork(postOracleUpdateTx);
@@ -202,11 +202,11 @@ contract CompoundV2LiquidationTest is CommonTest {
         uint256 answerFromOvalAfter = uint256(getSetCompoundOracle().getUnderlyingPrice(address(cETH)));
         uint256 answerFromChainlinkAfter = uint256(compoundOracle.getUnderlyingPrice(address(cETH)));
 
-        // Values have changed in chainlink but is stale within OVAL.
+        // Values have changed in chainlink but is stale within Oval.
 
-        assertTrue(answerFromOvalBefore == answerFromOvalAfter); // Price has not changed in OVAL.
+        assertTrue(answerFromOvalBefore == answerFromOvalAfter); // Price has not changed in Oval.
         assertTrue(answerFromChainlinkBefore != answerFromChainlinkAfter); // Price has changed within Chainlink.
-        assertTrue(DestinationAdapter.getUnderlyingPrice(address(cETH)) == answerFromOvalBefore); // destination adapter has not updated yet and should be the same as the OVAL.
+        assertTrue(DestinationAdapter.getUnderlyingPrice(address(cETH)) == answerFromOvalBefore); // destination adapter has not updated yet and should be the same as the Oval.
     }
 
     function getSetCompoundOracle() public view returns (IUniswapAnchoredView) {

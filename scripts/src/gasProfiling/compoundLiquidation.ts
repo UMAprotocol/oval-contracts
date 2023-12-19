@@ -12,8 +12,8 @@ import {
   TenderlySimulationResult,
 } from "../TenderlyHelpers/TenderlySimulation";
 import { UniswapAnchoredViewDestinationAdapter__factory } from "../../contract-types";
-// Have to import TestedOVAL manually since it is not unique.
-import { TestedOVAL__factory } from "../../contract-types/factories/CompoundV2.Liquidation.sol/TestedOVAL__factory";
+// Have to import TestedOval manually since it is not unique.
+import { TestedOval__factory } from "../../contract-types/factories/CompoundV2.Liquidation.sol/TestedOval__factory";
 
 // Common constants.
 // Compound liquidation https://etherscan.io/tx/0xb955a078b9b2a73e111033a3e77142b5768f5729285279d56eff641e43060555
@@ -95,9 +95,9 @@ const regularCompoundLiquidation = async (): Promise<number> => {
   return simulation.gasUsed;
 };
 
-const OVALCompoundLiquidation = async (): Promise<number> => {
+const OvalCompoundLiquidation = async (): Promise<number> => {
   // Create and share new fork (delete the old one if it exists).
-  const alias = "OVAL Compound Liquidation";
+  const alias = "Oval Compound Liquidation";
   const description =
     "Genereated: " + utils.keccak256(utils.toUtf8Bytes(alias));
   const existingFork = await findForkByDescription(description);
@@ -132,51 +132,51 @@ const OVALCompoundLiquidation = async (): Promise<number> => {
     "Deploy UniswapAnchoredViewDestinationAdapter"
   );
 
-  // Deploy OVAL.
-  const testedOVALFactory = new TestedOVAL__factory(ownerSigner);
-  const testedOVAL = await testedOVALFactory.deploy(
+  // Deploy Oval.
+  const testedOvalFactory = new TestedOval__factory(ownerSigner);
+  const testedOval = await testedOvalFactory.deploy(
     uniswapAnchoredViewSourceAddress,
     cETHAddress
   );
-  await testedOVAL.deployTransaction.wait();
+  await testedOval.deployTransaction.wait();
   fork = await getTenderlyFork(fork.id); // Refresh to get head id since we submitted tx through RPC.
   if (!fork.headId) throw new Error("Fork head id not found.");
-  await setForkSimulationDescription(fork.id, fork.headId, "Deploy OVAL");
+  await setForkSimulationDescription(fork.id, fork.headId, "Deploy Oval");
 
-  // Set TestedOVAL on UniswapAnchoredViewDestinationAdapter.
-  const setOVALInput =
-    uavDestinationAdapterFactory.interface.encodeFunctionData("setOVAL", [
+  // Set TestedOval on UniswapAnchoredViewDestinationAdapter.
+  const setOvalInput =
+    uavDestinationAdapterFactory.interface.encodeFunctionData("setOval", [
       cETHAddress,
-      testedOVAL.address,
+      testedOval.address,
     ]);
   let simulation = await simulateTenderlyTx({
     chainId,
     from: ownerAddress,
     to: uavDestinationAdapter.address,
-    input: setOVALInput,
+    input: setOvalInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: fork.headId },
-    description: "Set OVAL",
+    description: "Set Oval",
   });
 
-  // Enable unlocker on TestedOVAL.
-  const setUnlockerInput = testedOVALFactory.interface.encodeFunctionData(
+  // Enable unlocker on TestedOval.
+  const setUnlockerInput = testedOvalFactory.interface.encodeFunctionData(
     "setUnlocker",
     [unlockerAddress, true]
   );
   simulation = await simulateTenderlyTx({
     chainId,
     from: ownerAddress,
-    to: testedOVAL.address,
+    to: testedOval.address,
     input: setUnlockerInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Enable unlocker on OVAL",
+    description: "Enable unlocker on Oval",
   });
 
-  // Whitelist TestedOVAL on chainlink
+  // Whitelist TestedOval on chainlink
   const sourceChainlinkOracleAddress =
-    await testedOVAL.callStatic.aggregator();
+    await testedOval.callStatic.aggregator();
   const sourceChainlinkOracle = new Contract(
     sourceChainlinkOracleAddress,
     accessControlledOffchainAggregatorAbi,
@@ -186,7 +186,7 @@ const OVALCompoundLiquidation = async (): Promise<number> => {
     await sourceChainlinkOracle.callStatic.owner();
   const addAccessInput = sourceChainlinkOracle.interface.encodeFunctionData(
     "addAccess",
-    [testedOVAL.address]
+    [testedOval.address]
   );
   simulation = await simulateTenderlyTx({
     chainId,
@@ -195,7 +195,7 @@ const OVALCompoundLiquidation = async (): Promise<number> => {
     input: addAccessInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Whitelist OVAL on Chainlink",
+    description: "Whitelist Oval on Chainlink",
   });
 
   // Point Comptroller to UniswapAnchoredViewDestinationAdapter.
@@ -221,15 +221,15 @@ const OVALCompoundLiquidation = async (): Promise<number> => {
 
   // Unlock latest value.
   const unlockLatestValueInput =
-    testedOVALFactory.interface.encodeFunctionData("unlockLatestValue");
+    testedOvalFactory.interface.encodeFunctionData("unlockLatestValue");
   simulation = await simulateTenderlyTx({
     chainId,
     from: unlockerAddress,
-    to: testedOVAL.address,
+    to: testedOval.address,
     input: unlockLatestValueInput,
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: simulation.id },
-    description: "Unlock latest value on OVAL",
+    description: "Unlock latest value on Oval",
   });
 
   // Open user position.
@@ -246,8 +246,8 @@ export const compoundLiquidation = async () => {
   console.log("Compound Liquidation gas comparison with unlock:\n");
 
   const regularCompoundBorrowGas = await regularCompoundLiquidation();
-  const OVALCompoundBorrowGas = await OVALCompoundLiquidation();
-  const gasDiff = OVALCompoundBorrowGas - regularCompoundBorrowGas;
+  const OvalCompoundBorrowGas = await OvalCompoundLiquidation();
+  const gasDiff = OvalCompoundBorrowGas - regularCompoundBorrowGas;
 
   console.log("Gas difference: " + gasDiff);
 };

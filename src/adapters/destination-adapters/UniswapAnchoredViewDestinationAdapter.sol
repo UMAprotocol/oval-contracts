@@ -32,8 +32,8 @@ contract UniswapAnchoredViewDestinationAdapter is Ownable, IUniswapAnchoredView 
 
     /**
      * @notice Enables the owner to set mapping between cTokens and Ovals. This is done for each supported cToken.
-     * @param cToken The cToken to set the Oval for.
-     * @param oval The Oval to set for the cToken.
+     * @param cToken The cToken to set Oval for.
+     * @param oval Oval to set for the cToken.
      */
     function setOval(address cToken, address oval) public onlyOwner {
         cTokenToOval[cToken] = oval;

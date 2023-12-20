@@ -13,7 +13,7 @@ For more information on how Oval works and how to integrate with it see [oval.do
 
 # Repo contents
 
-This repository contains the main smart contracts for the Oval Oracle. It uses [foundry](https://github.com/foundry-rs/foundry).
+This repository contains the main smart contracts for Oval Oracle. It uses [foundry](https://github.com/foundry-rs/foundry).
 
 ### Building Contracts
 

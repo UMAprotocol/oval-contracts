@@ -5,8 +5,8 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Oval} from "../Oval.sol";
 
 /**
- * @title BaseController providing the simplest possible controller logic to govern who can unlock the Oval.
- * @dev Custom Controllers can be created to provide more granular control over who can unlock the Oval.
+ * @title BaseController providing the simplest possible controller logic to govern who can unlock Oval.
+ * @dev Custom Controllers can be created to provide more granular control over who can unlock Oval.
  */
 
 abstract contract BaseController is Ownable, Oval {
@@ -17,7 +17,7 @@ abstract contract BaseController is Ownable, Oval {
     mapping(address => bool) public unlockers;
 
     /**
-     * @notice Enables the owner to set the unlocker status of an address. Once set, the address can unlock the Oval
+     * @notice Enables the owner to set the unlocker status of an address. Once set, the address can unlock Oval
      * and by calling unlockLatestValue as part of an MEV-share auction.
      * @param unlocker The address to set the unlocker status of.
      * @param allowed The unlocker status to set.
@@ -29,11 +29,11 @@ abstract contract BaseController is Ownable, Oval {
     }
 
     /**
-     * @notice Returns true if the caller is allowed to unlock the Oval.
+     * @notice Returns true if the caller is allowed to unlock Oval.
      * @dev This implementation simply checks if the caller is in the unlockers mapping. Custom Controllers can override
-     * this function to provide more granular control over who can unlock the Oval.
+     * this function to provide more granular control over who can unlock Oval.
      * @param caller The address to check.
-     * @param _lastUnlockTime The timestamp of the latest unlock to the Oval. Might be useful in verification.
+     * @param _lastUnlockTime The timestamp of the latest unlock to Oval. Might be useful in verification.
      */
     function canUnlock(address caller, uint256 _lastUnlockTime) public view override returns (bool) {
         return unlockers[caller];

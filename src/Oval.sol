@@ -17,7 +17,7 @@ import {DiamondRootOval} from "./DiamondRootOval.sol";
  */
 
 abstract contract Oval is DiamondRootOval {
-    uint256 public lastUnlockTime; // Timestamp of the latest unlock to the Oval.
+    uint256 public lastUnlockTime; // Timestamp of the latest unlock to Oval.
 
     /**
      * @notice Function called by permissioned actor to unlock the latest value as part of the MEV-share auction flow.

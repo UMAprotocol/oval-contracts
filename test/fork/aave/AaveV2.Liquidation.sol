@@ -80,8 +80,8 @@ contract AaveV2LiquidationTest is CommonTest {
         setOvalAsAaveSource();
         updateChainlinkToLatestValue();
 
-        // Even though the chainlink oracle is up to date, the Oval is not. This means an attempted liquidation
-        // will fail because the Oval price is stale.
+        // Even though the chainlink oracle is up to date, Oval is not. This means an attempted liquidation
+        // will fail because Oval price is stale.
         (, int256 latestAnswer,, uint256 latestTimestamp,) = sourceChainlinkOracle.latestRoundData();
         assertTrue(oval.latestAnswer() != latestAnswer, "1");
         assertTrue(oval.latestTimestamp() != latestTimestamp, "2");
@@ -90,7 +90,7 @@ contract AaveV2LiquidationTest is CommonTest {
         vm.expectRevert(bytes("42")); // 42 corresponds with position health being above 1.
         lendingPool.liquidationCall(address(collateralAsset), address(usdcDebtAsset), user, type(uint256).max, false);
 
-        //Now, unlock the Oval and show that the liquidation can be executed.
+        //Now, unlock Oval and show that the liquidation can be executed.
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
         (, int256 latestAnswerTwo,, uint256 latestTimestampTwo,) = sourceChainlinkOracle.latestRoundData();
@@ -108,15 +108,15 @@ contract AaveV2LiquidationTest is CommonTest {
         setOvalAsAaveSource();
         updateChainlinkToLatestValue();
 
-        // Even though the chainlink oracle is up to date, the Oval is not. This means an attempted liquidation
-        // will fail because the Oval price is stale.
+        // Even though the chainlink oracle is up to date, Oval is not. This means an attempted liquidation
+        // will fail because Oval price is stale.
         vm.prank(liquidator);
         vm.expectRevert(bytes("42")); // 42 corresponds with position health being above 1.
         lendingPool.liquidationCall(address(collateralAsset), address(usdcDebtAsset), user, type(uint256).max, false);
 
-        // To show that we can gracefully fall back to the source oracle, we will not unlock the Oval and
-        // rather advance time past the lock window. This will cause the Oval to fall back to the source
-        // oracle and the liquidation will succeed without the Oval being unlocked.
+        // To show that we can gracefully fall back to the source oracle, we will not unlock Oval and
+        // rather advance time past the lock window. This will cause Oval to fall back to the source
+        // oracle and the liquidation will succeed without Oval being unlocked.
         vm.warp(block.timestamp + oval.lockWindow() + 1);
 
         // We should see the accessors return the same values, even though the internal values are different.
@@ -124,7 +124,7 @@ contract AaveV2LiquidationTest is CommonTest {
         assertTrue(oval.latestAnswer() == latestAnswer);
         assertTrue(oval.latestTimestamp() == latestTimestamp);
 
-        // Now, run the liquidation. It should succeed without the Oval being unlocked due to the fallback.
+        // Now, run the liquidation. It should succeed without Oval being unlocked due to the fallback.
         vm.prank(liquidator);
         lendingPool.liquidationCall(address(collateralAsset), address(usdcDebtAsset), user, type(uint256).max, false);
         (,,,,, uint256 healthFactorAfter) = lendingPool.getUserAccountData(user);
@@ -145,7 +145,7 @@ contract AaveV2LiquidationTest is CommonTest {
     function createOvalAndUnlock() public {
         oval = new TestedOval(sourceChainlinkOracle, 18);
         oval.setUnlocker(permissionedUnlocker, true);
-        // pull the latest price into the Oval and check it matches with the source oracle.
+        // pull the latest price into Oval and check it matches with the source oracle.
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
         (, int256 latestAnswer,, uint256 latestTimestamp,) = sourceChainlinkOracle.latestRoundData();
@@ -154,7 +154,7 @@ contract AaveV2LiquidationTest is CommonTest {
     }
 
     function setOvalAsAaveSource() public {
-        // Set the Oval as the source oracle for the SUSD asset for Aave.
+        // Set Oval as the source oracle for the SUSD asset for Aave.
         address[] memory assets = new address[](1);
         assets[0] = address(susdDebtAsset);
         address[] memory sources = new address[](1);
@@ -164,7 +164,7 @@ contract AaveV2LiquidationTest is CommonTest {
     }
 
     function updateChainlinkToLatestValue() public {
-        // Apply the chainlink update within chainlink. This wont affect the Oval price until it is unlocked.
+        // Apply the chainlink update within chainlink. This wont affect Oval price until it is unlocked.
         (, int256 answerBefore,, uint256 timestampBefore,) = sourceChainlinkOracle.latestRoundData();
         vm.rollFork(postOracleUpdateTx);
         (, int256 answerAfter,, uint256 timestampAfter,) = sourceChainlinkOracle.latestRoundData();

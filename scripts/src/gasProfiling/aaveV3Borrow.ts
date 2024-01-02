@@ -1,11 +1,12 @@
-import { providers, utils } from "ethers";
+import { Signer, providers, utils } from "ethers";
 import {
+  TenderlyForkResult,
   createTenderlyFork,
   deleteTenderlyFork,
   findForkByDescription,
   getTenderlyFork,
   setForkSimulationDescription,
-  shareTenderlyFork,
+  shareTenderlyFork
 } from "../TenderlyHelpers/TenderlyFork";
 import {
   TenderlySimulationResult,
@@ -21,6 +22,7 @@ const chainId = 1;
 // Used ABIs.
 const aaveOracleAbi = [
   "function setAssetSources(address[] memory assets, address[] memory sources)",
+  "function getSourceOfAsset(address asset) view returns (address)",
 ];
 
 const borrowCall = async (
@@ -74,33 +76,24 @@ const regularAaveV3Borrow = async (): Promise<number> => {
   return simulation.gasUsed;
 };
 
-const OvalAaveV3Borrow = async (): Promise<number> => {
-  // Create and share new fork (delete the old one if it exists).
-  const alias = "Oval AAVE V3 Borrow";
-  const description =
-    "Genereated: " + utils.keccak256(utils.toUtf8Bytes(alias));
-  const existingFork = await findForkByDescription(description);
-  if (existingFork) await deleteTenderlyFork(existingFork.id);
-  let fork = await createTenderlyFork({
-    chainId,
-    alias,
-    description,
-    blockNumber,
-    txIndex: 1,
-  });
-  const forkUrl = await shareTenderlyFork(fork.id);
+const deployOvalForAsset = async (asset: string, fork: TenderlyForkResult, ownerSigner: Signer, unlockerAddress: string, forkTimestamp, provider: providers.JsonRpcProvider) => {
+  const aaveOracleInterface = new utils.Interface(aaveOracleAbi);
+  // Get asset old oracle address
 
-  // Get provider, accounts and start time of the fork.
-  const provider = new providers.StaticJsonRpcProvider(fork.rpcUrl);
-  const [ownerAddress, userAddress, unlockerAddress] =
-    await provider.listAccounts(); // These should have 100 ETH balance.
-  const ownerSigner = provider.getSigner(ownerAddress);
-  const forkTimestamp = (await provider.getBlock(blockNumber)).timestamp;
+  const aaveOldOracleCallData = aaveOracleInterface.encodeFunctionData(
+    "getSourceOfAsset",
+    [asset]
+  );
+
+  const aaveOldOracle = await provider.call({
+    to: "0x54586be62e3c3580375ae3723c145253060ca0c2",
+    data: aaveOldOracleCallData
+  });
 
   // Deploy Oval.
   const testedOvalFactory = new TestedOval__factory(ownerSigner);
   const testedOval = await testedOvalFactory.deploy(
-    "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
+    '0x' + aaveOldOracle.substring(aaveOldOracle.length - 40),
     8,
     [unlockerAddress]
   );
@@ -110,10 +103,9 @@ const OvalAaveV3Borrow = async (): Promise<number> => {
   await setForkSimulationDescription(fork.id, fork.headId, "Deploy Oval");
 
   // setOvalAsAaveSource
-  const aaveOracleInterface = new utils.Interface(aaveOracleAbi);
   const aaveOracleCallData = aaveOracleInterface.encodeFunctionData(
     "setAssetSources",
-    [["0xdac17f958d2ee523a2206206994597c13d831ec7"], [testedOval.address]]
+    [[asset], [testedOval.address]]
   );
 
   let simulation = await simulateTenderlyTx({
@@ -138,6 +130,37 @@ const OvalAaveV3Borrow = async (): Promise<number> => {
     fork: { id: fork.id, root: simulation.id },
     description: "Unlock latest value on Oval",
   });
+
+  return simulation;
+}
+
+const OvalAaveV3Borrow = async (): Promise<number> => {
+  // Create and share new fork (delete the old one if it exists).
+  const alias = "Oval AAVE V3 Borrow";
+  const description =
+    "Genereated: " + utils.keccak256(utils.toUtf8Bytes(alias));
+  const existingFork = await findForkByDescription(description);
+  if (existingFork) await deleteTenderlyFork(existingFork.id);
+  let fork = await createTenderlyFork({
+    chainId,
+    alias,
+    description,
+    blockNumber,
+    txIndex: 1,
+  });
+  const forkUrl = await shareTenderlyFork(fork.id);
+
+  // Get provider, accounts and start time of the fork.
+  const provider = new providers.StaticJsonRpcProvider(fork.rpcUrl);
+  const [ownerAddress, userAddress, unlockerAddress] =
+    await provider.listAccounts(); // These should have 100 ETH balance.
+  const ownerSigner = provider.getSigner(ownerAddress);
+  const forkTimestamp = (await provider.getBlock(blockNumber)).timestamp;
+
+  // Deploy Oval for USDT
+  let simulation = await deployOvalForAsset("0xdac17f958d2ee523a2206206994597c13d831ec7", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
+  // Deploy Oval for USDC
+  simulation = await deployOvalForAsset("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
 
   // Open user position.
   simulation = await borrowCall(forkTimestamp, fork.id, simulation.id);

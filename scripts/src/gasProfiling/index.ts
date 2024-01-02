@@ -8,11 +8,11 @@ import { aaveV3Borrow } from "./aaveV3Borrow";
 const main = async () => {
   console.log("Running gas profiling ...\n");
 
-  await compoundBorrow();
-  await compoundLiquidation();
-  await aaveV2Liquidation();
-  await aaveV3Liquidation();
-  await aaveV2Borrow();
+  // await compoundBorrow();
+  // await compoundLiquidation();
+  // await aaveV2Liquidation();
+  // await aaveV3Liquidation();
+  // await aaveV2Borrow();
   await aaveV3Borrow();
 };
 

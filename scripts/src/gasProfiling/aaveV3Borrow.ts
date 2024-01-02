@@ -1,12 +1,13 @@
 import { Signer, providers, utils } from "ethers";
 import {
+  TenderlyForkParams,
   TenderlyForkResult,
   createTenderlyFork,
   deleteTenderlyFork,
   findForkByDescription,
   getTenderlyFork,
   setForkSimulationDescription,
-  shareTenderlyFork
+  shareTenderlyFork,
 } from "../TenderlyHelpers/TenderlyFork";
 import {
   TenderlySimulationResult,
@@ -14,6 +15,7 @@ import {
 } from "../TenderlyHelpers/TenderlySimulation";
 // Have to import TestedOval manually since it is not unique.
 import { TestedOval__factory } from "../../contract-types/factories/AaveV3.Liquidation.sol/TestedOval__factory";
+import { TestedOvalCustom__factory } from "../../contract-types";
 
 // Common constants.
 const blockNumber = 18427678;
@@ -80,6 +82,8 @@ const deployOvalForAsset = async (asset: string, fork: TenderlyForkResult, owner
   const aaveOracleInterface = new utils.Interface(aaveOracleAbi);
   // Get asset old oracle address
 
+  const isWBTC = asset === "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
+
   const aaveOldOracleCallData = aaveOracleInterface.encodeFunctionData(
     "getSourceOfAsset",
     [asset]
@@ -91,7 +95,7 @@ const deployOvalForAsset = async (asset: string, fork: TenderlyForkResult, owner
   });
 
   // Deploy Oval.
-  const testedOvalFactory = new TestedOval__factory(ownerSigner);
+  const testedOvalFactory = isWBTC ? new TestedOvalCustom__factory(ownerSigner) : new TestedOval__factory(ownerSigner);
   const testedOval = await testedOvalFactory.deploy(
     '0x' + aaveOldOracle.substring(aaveOldOracle.length - 40),
     8,
@@ -157,10 +161,9 @@ const OvalAaveV3Borrow = async (): Promise<number> => {
   const ownerSigner = provider.getSigner(ownerAddress);
   const forkTimestamp = (await provider.getBlock(blockNumber)).timestamp;
 
-  // Deploy Oval for USDT
-  let simulation = await deployOvalForAsset("0xdac17f958d2ee523a2206206994597c13d831ec7", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
-  // Deploy Oval for USDC
-  simulation = await deployOvalForAsset("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
+  let simulation = await deployOvalForAsset("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
+  simulation = await deployOvalForAsset("0xdac17f958d2ee523a2206206994597c13d831ec7", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
+  simulation = await deployOvalForAsset("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", fork, ownerSigner, unlockerAddress, forkTimestamp, provider);
 
   // Open user position.
   simulation = await borrowCall(forkTimestamp, fork.id, simulation.id);

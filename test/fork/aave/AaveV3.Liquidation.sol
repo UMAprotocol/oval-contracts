@@ -5,6 +5,7 @@ import {CommonTest} from "../../Common.sol";
 
 import {ImmutableController} from "../../../src/controllers/ImmutableController.sol";
 import {ChainlinkSourceAdapter} from "../../../src/adapters/source-adapters/ChainlinkSourceAdapter.sol";
+import {ChainlinkSourceAdapterT} from "../../../src/adapters/source-adapters/ChainlinkSourceAdapterTest.sol";
 import {ChainlinkDestinationAdapter} from "../../../src/adapters/destination-adapters/ChainlinkDestinationAdapter.sol";
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 
@@ -20,6 +21,14 @@ interface Usdc is IERC20 {
 contract TestedOval is ImmutableController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
     constructor(IAggregatorV3Source source, uint8 decimals, address[] memory unlockers)
         ChainlinkSourceAdapter(source)
+        ImmutableController(60, 10, unlockers)
+        ChainlinkDestinationAdapter(decimals)
+    {}
+}
+
+contract TestedOvalCustom is ImmutableController, ChainlinkSourceAdapterT, ChainlinkDestinationAdapter {
+    constructor(IAggregatorV3Source source, uint8 decimals, address[] memory unlockers)
+        ChainlinkSourceAdapterT(source)
         ImmutableController(60, 10, unlockers)
         ChainlinkDestinationAdapter(decimals)
     {}

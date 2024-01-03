@@ -57,9 +57,11 @@ abstract contract BoundedUnionSourceAdapter is
     }
 
     /**
-     * @notice Snapshots is a no-op for this adapter as its never used.
+     * @notice Snapshots data from all sources that require it.
      */
-    function snapshotData() public override(ChainlinkSourceAdapter, SnapshotSource) {}
+    function snapshotData() public override(ChainlinkSourceAdapter, SnapshotSource) {
+        SnapshotSource.snapshotData();
+    }
 
     /**
      * @notice Tries getting latest data as of requested timestamp. Note that for all historic lookups we simply return
@@ -82,12 +84,22 @@ abstract contract BoundedUnionSourceAdapter is
         (int256 crAnswer, uint256 crTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
         (int256 pyAnswer, uint256 pyTimestamp) = PythSourceAdapter.getLatestSourceData();
 
+        // Even if dropped, Chronicle or Pyth prices could have been captured at snapshot that satisfies time constraint.
+        Snapshot memory snapshot = SnapshotSource._tryLatestDataAt(timestamp, maxTraversal);
+
         // To "drop" Chronicle and Pyth, we set their timestamps to 0 (as old as possible) if they are too recent.
         // This means that they will never be used if either or both are 0.
         if (crTimestamp > timestamp) crTimestamp = 0;
         if (pyTimestamp > timestamp) pyTimestamp = 0;
 
-        return _selectBoundedPrice(clAnswer, clTimestamp, crAnswer, crTimestamp, pyAnswer, pyTimestamp);
+        (int256 boundedAnswer, uint256 boundedTimestamp) =
+            _selectBoundedPrice(clAnswer, clTimestamp, crAnswer, crTimestamp, pyAnswer, pyTimestamp);
+
+        // Return bounded data unless there is a newer snapshotted data that satisfies time constraint.
+        if (boundedTimestamp >= snapshot.timestamp || snapshot.timestamp > timestamp) {
+            return (boundedAnswer, boundedTimestamp);
+        }
+        return (snapshot.answer, snapshot.timestamp);
     }
 
     // Selects the appropriate price from the three sources based on the bounding tolerance and logic.

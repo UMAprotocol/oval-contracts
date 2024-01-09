@@ -31,11 +31,11 @@ abstract contract ImmutableController is Oval {
     }
 
     /**
-     * @notice Returns true if the caller is allowed to unlock the Oval.
+     * @notice Returns true if the caller is allowed to unlock Oval.
      * @dev This implementation simply checks if the caller is in the unlockers mapping. Custom Controllers can override
-     * this function to provide more granular control over who can unlock the Oval.
+     * this function to provide more granular control over who can unlock Oval.
      * @param caller The address to check.
-     * @param _lastUnlockTime The timestamp of the latest unlock to the Oval. Might be useful in verification.
+     * @param _lastUnlockTime The timestamp of the latest unlock to Oval. Might be useful in verification.
      */
     function canUnlock(address caller, uint256 _lastUnlockTime) public view override returns (bool) {
         return unlockers[caller];

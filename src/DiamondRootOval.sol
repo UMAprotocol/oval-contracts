@@ -6,8 +6,8 @@ import {IBaseController} from "./interfaces/IBaseController.sol";
 import {IOval} from "./interfaces/IOval.sol";
 
 /**
- * @title DiamondRootOval contract to provide base functions that the three components of the Oval contract system
- * need. They are exposed here to simplify the inheritance structure of the Oval contract system and to enable easier
+ * @title DiamondRootOval contract to provide base functions that the three components of Oval contract system
+ * need. They are exposed here to simplify the inheritance structure of Oval contract system and to enable easier
  * composability and extensibility at the integration layer, enabling arbitrary combinations of sources and destinations.
  */
 
@@ -30,7 +30,7 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) public view virtual returns (int256, uint256);
 
     /**
-     * @notice Returns the latest data from the source. Depending on when the Oval was last unlocked this might
+     * @notice Returns the latest data from the source. Depending on when Oval was last unlocked this might
      * return an slightly stale value to protect the OEV from being stolen by a front runner.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
@@ -43,7 +43,7 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
     function snapshotData() public virtual;
 
     /**
-     * @notice Permissioning function to control who can unlock the Oval.
+     * @notice Permissioning function to control who can unlock Oval.
      */
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual returns (bool);
 

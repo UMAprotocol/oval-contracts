@@ -166,7 +166,8 @@ const OvalCompoundBorrow = async (): Promise<number> => {
   const testedOvalFactory = new TestedOval__factory(ownerSigner);
   const testedOval = await testedOvalFactory.deploy(
     uniswapAnchoredViewSourceAddress,
-    cETHAddress
+    cETHAddress,
+    [unlockerAddress]
   );
   await testedOval.deployTransaction.wait();
   fork = await getTenderlyFork(fork.id); // Refresh to get head id since we submitted tx through RPC.
@@ -191,21 +192,6 @@ const OvalCompoundBorrow = async (): Promise<number> => {
     timestampOverride: forkTimestamp,
     fork: { id: fork.id, root: fork.headId },
     description: "Set Oval",
-  });
-
-  // Enable unlocker on TestedOval.
-  const setUnlockerInput = testedOvalFactory.interface.encodeFunctionData(
-    "setUnlocker",
-    [unlockerAddress, true]
-  );
-  simulation = await simulateTenderlyTx({
-    chainId,
-    from: ownerAddress,
-    to: testedOval.address,
-    input: setUnlockerInput,
-    timestampOverride: forkTimestamp,
-    fork: { id: fork.id, root: simulation.id },
-    description: "Enable unlocker on Oval",
   });
 
   // Whitelist TestedOval on chainlink

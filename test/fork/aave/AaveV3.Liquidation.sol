@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import {CommonTest} from "../../Common.sol";
 
-import {BaseController} from "../../../src/controllers/BaseController.sol";
+import {ImmutableController} from "../../../src/controllers/ImmutableController.sol";
 import {ChainlinkSourceAdapter} from "../../../src/adapters/source-adapters/ChainlinkSourceAdapter.sol";
 import {ChainlinkDestinationAdapter} from "../../../src/adapters/destination-adapters/ChainlinkDestinationAdapter.sol";
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
@@ -17,10 +17,10 @@ interface Usdc is IERC20 {
     function mint(address _to, uint256 _amount) external returns (bool);
 }
 
-contract TestedOval is BaseController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
-    constructor(IAggregatorV3Source source, uint8 decimals)
+contract TestedOval is ImmutableController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
+    constructor(IAggregatorV3Source source, uint8 decimals, address[] memory unlockers)
         ChainlinkSourceAdapter(source)
-        BaseController()
+        ImmutableController(60, 10, unlockers)
         ChainlinkDestinationAdapter(decimals)
     {}
 }
@@ -136,9 +136,10 @@ contract Aave3LiquidationTest is CommonTest {
     }
 
     function createOvalAndUnlock() public {
-        oval = new TestedOval(sourceChainlinkOracle, 8);
-        oval.setUnlocker(permissionedUnlocker, true);
-        // pull the latest price into Oval and check it matches with the source oracle.
+        address[] memory unlockers = new address[](1);
+        unlockers[0] = permissionedUnlocker;
+        oval = new TestedOval(sourceChainlinkOracle, 8, unlockers);
+        // pull the latest price into the Oval and check it matches with the source oracle.
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
         (, int256 latestAnswer,, uint256 latestTimestamp,) = sourceChainlinkOracle.latestRoundData();

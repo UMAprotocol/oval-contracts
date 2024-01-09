@@ -102,27 +102,13 @@ const OvalAaveV2Borrow = async (): Promise<number> => {
   const testedOvalFactory = new TestedOval__factory(ownerSigner);
   const testedOval = await testedOvalFactory.deploy(
     "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46",
-    18
+    18,
+    [unlockerAddress]
   );
   await testedOval.deployTransaction.wait();
   fork = await getTenderlyFork(fork.id); // Refresh to get head id since we submitted tx through RPC.
   if (!fork.headId) throw new Error("Fork head id not found.");
   await setForkSimulationDescription(fork.id, fork.headId, "Deploy Oval");
-
-  // Enable unlocker on TestedOval.
-  const setUnlockerInput = testedOvalFactory.interface.encodeFunctionData(
-    "setUnlocker",
-    [unlockerAddress, true]
-  );
-  let simulation = await simulateTenderlyTx({
-    chainId,
-    from: ownerAddress,
-    to: testedOval.address,
-    input: setUnlockerInput,
-    timestampOverride: forkTimestamp,
-    fork: { id: fork.id, root: fork.headId },
-    description: "Enable unlocker on Oval",
-  });
 
   // setOvalAsAaveSource
   const aaveOracleInterface = new utils.Interface(aaveOracleAbi);
@@ -131,13 +117,13 @@ const OvalAaveV2Borrow = async (): Promise<number> => {
     [["0xdac17f958d2ee523a2206206994597c13d831ec7"], [testedOval.address]]
   );
 
-  simulation = await simulateTenderlyTx({
+  let simulation = await simulateTenderlyTx({
     chainId,
     from: "0xEE56e2B3D491590B5b31738cC34d5232F378a8D5", //aaveOracle owner
     to: "0xA50ba011c48153De246E5192C8f9258A2ba79Ca9", //aaveOracle
     input: aaveOracleCallData,
     timestampOverride: forkTimestamp,
-    fork: { id: fork.id, root: simulation.id },
+    fork: { id: fork.id, root: fork.headId },
     description: "Change Oval as Aave source",
   });
 

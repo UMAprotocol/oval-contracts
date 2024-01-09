@@ -8,7 +8,7 @@ import {UniswapAnchoredViewDestinationAdapter} from
     "../../../src/adapters/destination-adapters/UniswapAnchoredViewDestinationAdapter.sol";
 import {IUniswapAnchoredView} from "../../../src/interfaces/compound/IUniswapAnchoredView.sol";
 import {BaseDestinationAdapter} from "../../../src/adapters/destination-adapters/BaseDestinationAdapter.sol";
-import {BaseController} from "../../../src/controllers/BaseController.sol";
+import {ImmutableController} from "../../../src/controllers/ImmutableController.sol";
 import {IAggregatorV3} from "../../../src/interfaces/chainlink/IAggregatorV3.sol";
 import {IAccessControlledAggregatorV3} from "../../../src/interfaces/chainlink/IAccessControlledAggregatorV3.sol";
 import {ICToken} from "../../../src/interfaces/compound/ICToken.sol";
@@ -24,10 +24,10 @@ interface Usdc is IERC20 {
 
 // Juicy liquidation: https://etherscan.io/tx/0xb955a078b9b2a73e111033a3e77142b5768f5729285279d56eff641e43060555
 
-contract TestedOval is BaseController, UniswapAnchoredViewSourceAdapter, BaseDestinationAdapter {
-    constructor(IUniswapAnchoredView source, address cToken)
+contract TestedOval is ImmutableController, UniswapAnchoredViewSourceAdapter, BaseDestinationAdapter {
+    constructor(IUniswapAnchoredView source, address cToken, address[] memory unlockers)
         UniswapAnchoredViewSourceAdapter(source, cToken)
-        BaseController()
+        ImmutableController(60, 10, unlockers)
         BaseDestinationAdapter()
     {}
 }
@@ -170,11 +170,12 @@ contract CompoundV2LiquidationTest is CommonTest {
 
     function createOvalAndUnlock() public {
         DestinationAdapter = new UniswapAnchoredViewDestinationAdapter(getSetCompoundOracle());
-        oval = new TestedOval(getSetCompoundOracle(), address(cETH));
+        address[] memory unlockers = new address[](1);
+        unlockers[0] = permissionedUnlocker;
+        oval = new TestedOval(getSetCompoundOracle(), address(cETH), unlockers);
         DestinationAdapter.setOval(address(cETH), address(oval));
         assertTrue(DestinationAdapter.cTokenToOval(address(cETH)) == address(oval));
         assertTrue(DestinationAdapter.cTokenToDecimal(address(cETH)) == 18); // (36 - 18 ETH decimals).
-        oval.setUnlocker(permissionedUnlocker, true);
         sourceChainlinkOracle = IAccessControlledAggregatorV3(address(oval.aggregator()));
         vm.prank(sourceChainlinkOracle.owner());
         sourceChainlinkOracle.addAccess(address(oval));

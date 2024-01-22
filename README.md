@@ -5,8 +5,6 @@
 
 Oval is an MEV capture mechanism that lets protocols reclaim Oracle Extractable Value(OEV) by auctioning oracle updates. It leveraged Flashbot's [MEV-share](https://docs.flashbots.net/flashbots-protect/mev-share) OFA system by running auctions for the right to backrun an oracle update.
 
-This repository contains the smart contracts that power Oval. The basic structure of these contracts
-
 For more information on how Oval works and how to integrate with it see the [docs](https://docs.oval.xyz/).
 
 ## Repo contents

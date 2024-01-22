@@ -9,7 +9,7 @@ For more information on how Oval works and how to integrate with it see the [doc
 
 ## Repo contents
 
-This repository contains the main smart contracts for Oval Oracle. It uses [Foundry](https://github.com/foundry-rs/foundry). For spesific information on contracts, see the [Contract Architecture](https://app.gitbook.com/o/MZ06Z7ucpJtTO46hUUQr/s/tXEHwUXJ0YQakWqJOaw2/contract-architecture) section of the docs.
+This repository contains the main smart contracts for Oval. It uses [Foundry](https://github.com/foundry-rs/foundry). For spesific information on contracts, see the [Contract Architecture](https://docs.oval.xyz/contract-architecture) section of the docs.
 
 This repo also consists of a set of scripts used to profile the Oval gas usage. See [README](./scripts/README.md) that shows how to run these and [this](https://docs.oval.xyz/contract-architecture/gas-profiling) docs page that outlines the gas profiling finding.
 

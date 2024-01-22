@@ -1,19 +1,19 @@
-<div align="center">
-  <br />
-  <br />
-   <h1>Oval</h1>
-  <br />
-  <h3> Oval enables the redirection and capture of Oracle Extractable Value. </h3>
-  <br />
-</div>
+# Oval Contracts
+<p align="center">
+  <img alt="UMA Logo" src="https://i.imgur.com/fSkkK5M.png" width="440">
+</p>
 
-Oval is designed as an enhancement over the standard oracles like Chainlink, wrapping around them to introduce a novel functionality: the unlocking of price updates. This unique feature allows Oval-enabled projects to capture _Oracle Extractable Value_(OEV), a form of value generated from oracle updates within a project. By disrupting the traditional MEV (Miner Extractable Value) supply chain, Oval opens up new revenue streams for projects. For instance, in a money market scenario, the protocol could earn revenue each time liquidations occur within its system. This is achieved by controlling the timing and accessibility of oracle updates, thus allowing the projects to strategically position themselves to benefit from the resulting market movements. This approach sets Oval apart, leveraging the reliability and familiarity of Chainlink's data while introducing a strategic layer for maximizing the value extracted from oracle updates.
+Oval is an MEV capture mechanism that lets protocols reclaim Oracle Extractable Value(OEV) by auctioning oracle updates. It leveraged Flashbot's [MEV-share](https://docs.flashbots.net/flashbots-protect/mev-share) OFA system by running auctions for the right to backrun an oracle update.
 
-For more information on how Oval works and how to integrate with it see [oval.docs.uma.xyz]().
+This repository contains the smart contracts that power Oval. The basic structure of these contracts
 
-# Repo contents
+For more information on how Oval works and how to integrate with it see the [docs](https://docs.oval.xyz/).
 
-This repository contains the main smart contracts for Oval Oracle. It uses [foundry](https://github.com/foundry-rs/foundry).
+## Repo contents
+
+This repository contains the main smart contracts for Oval Oracle. It uses [Foundry](https://github.com/foundry-rs/foundry). For spesific information on contracts, see the [Contract Architecture](https://app.gitbook.com/o/MZ06Z7ucpJtTO46hUUQr/s/tXEHwUXJ0YQakWqJOaw2/contract-architecture) section of the docs.
+
+This repo also consists of a set of scripts used to profile the Oval gas usage. See [README](./scripts/README.md) that shows how to run these and [this](https://docs.oval.xyz/contract-architecture/gas-profiling) docs page that outlines the gas profiling finding.
 
 ### Building Contracts
 

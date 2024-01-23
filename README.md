@@ -27,3 +27,7 @@ This repository uses foundry fork tests. You will need to run the fork tests as 
 export RPC_MAINNET=[your ethereum mainnet archive node url]
 forge test
 ```
+
+## License
+
+All code in this repository is licensed under BUSL-1.1 unless specified differently in the file. Individual exceptions to this license can be made by Risk Labs, which holds the rights to this software and design. If you are interested in using the code or designs in a derivative work, feel free to reach out to licensing@risklabs.foundation.

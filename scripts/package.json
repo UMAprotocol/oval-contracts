@@ -1,7 +1,7 @@
 {
-  "name": "oval-contracts",
+  "name": "oval-contracts-scripts",
   "version": "1.0.0",
-  "description": "Oval Contracts",
+  "description": "Oval simulation scripts",
   "main": "dist/index.js",
   "repository": "git@github.com:UMAprotocol/oval-contracts.git",
   "author": "Risk Labs",

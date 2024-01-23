@@ -1,11 +1,11 @@
 {
-  "name": "oval-contract-scripts",
+  "name": "oval-contracts",
   "version": "1.0.0",
-  "description": "Oval simulation scripts",
+  "description": "Oval Contracts",
   "main": "dist/index.js",
   "repository": "git@github.com:UMAprotocol/oval-contracts.git",
-  "author": "UMA team",
-  "license": "AGPL-3.0-only",
+  "author": "Risk Labs",
+  "license": "BUSL-1.1",
   "private": true,
   "scripts": {
     "generate-contract-types": "rm -rf contract-types && typechain --target ethers-v5 --out-dir contract-types $(find ../out -name '*.json' ! -name 'Common.json')",
@@ -17,9 +17,7 @@
     "@typechain/ethers-v5": "^11.1.2",
     "@types/node": "^20.8.6",
     "typechain": "^8.3.2",
-    "typescript": "^5.2.2"
-  },
-  "dependencies": {
+    "typescript": "^5.2.2",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
     "ethers": "^5.7.2"

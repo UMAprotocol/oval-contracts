@@ -56,11 +56,10 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
-     * @return roundId The roundId of the answer.
      */
-    function getLatestSourceData() public view virtual override returns (int256, uint256, uint256) {
-        (uint80 roundId, int256 sourceAnswer,, uint256 updatedAt,) = CHAINLINK_SOURCE.latestRoundData();
-        return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt, roundId);
+    function getLatestSourceData() public view virtual override returns (int256, uint256) {
+        (, int256 sourceAnswer,, uint256 updatedAt,) = CHAINLINK_SOURCE.latestRoundData();
+        return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
     }
 
     // Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data available

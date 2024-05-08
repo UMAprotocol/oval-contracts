@@ -15,9 +15,8 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
-     * @return roundId The roundId of the answer.
      */
-    function getLatestSourceData() public view virtual returns (int256, uint256, uint256);
+    function getLatestSourceData() public view virtual returns (int256, uint256);
 
     /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data

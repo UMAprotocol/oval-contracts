@@ -7,5 +7,5 @@ interface IBaseOracleAdapter {
         view
         returns (int256 answer, uint256 timestamp, uint256 roundId);
 
-    function getLatestSourceData() external view returns (int256 answer, uint256 timestamp, uint256 roundId);
+    function getLatestSourceData() external view returns (int256 answer, uint256 timestamp);
 }

@@ -8,7 +8,6 @@ import {Oval} from "../Oval.sol";
  * @title BaseController providing the simplest possible controller logic to govern who can unlock Oval.
  * @dev Custom Controllers can be created to provide more granular control over who can unlock Oval.
  */
-
 abstract contract BaseController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private lockWindow_ = 60; // The lockWindow in seconds.
@@ -46,12 +45,12 @@ abstract contract BaseController is Ownable, Oval {
      * @param newLockWindow The lockWindow to set.
      */
     function setLockWindow(uint256 newLockWindow) public onlyOwner {
-        (int256 currentAnswer, uint256 currentTimestamp) = internalLatestData();
+        (int256 currentAnswer, uint256 currentTimestamp,) = internalLatestData();
 
         lockWindow_ = newLockWindow;
 
         // Compare Oval results so that change in lock window does not change returned data.
-        (int256 newAnswer, uint256 newTimestamp) = internalLatestData();
+        (int256 newAnswer, uint256 newTimestamp,) = internalLatestData();
         require(currentAnswer == newAnswer && currentTimestamp == newTimestamp, "Must unlock first");
 
         emit LockWindowSet(newLockWindow);

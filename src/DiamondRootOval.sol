@@ -10,14 +10,14 @@ import {IOval} from "./interfaces/IOval.sol";
  * need. They are exposed here to simplify the inheritance structure of Oval contract system and to enable easier
  * composability and extensibility at the integration layer, enabling arbitrary combinations of sources and destinations.
  */
-
 abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter {
     /**
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function getLatestSourceData() public view virtual returns (int256, uint256);
+    function getLatestSourceData() public view virtual returns (int256, uint256, uint256);
 
     /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
@@ -26,16 +26,22 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) public view virtual returns (int256, uint256);
+    function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
+        public
+        view
+        virtual
+        returns (int256, uint256, uint256);
 
     /**
      * @notice Returns the latest data from the source. Depending on when Oval was last unlocked this might
      * return an slightly stale value to protect the OEV from being stolen by a front runner.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function internalLatestData() public view virtual returns (int256, uint256);
+    function internalLatestData() public view virtual returns (int256, uint256, uint256);
 
     /**
      * @notice Snapshot the current source data. Is a no-op if the source does not require snapshotting.

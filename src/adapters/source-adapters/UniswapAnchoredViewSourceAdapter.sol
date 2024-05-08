@@ -11,7 +11,6 @@ import {IValidatorProxy} from "../../interfaces/compound/IValidatorProxy.sol";
  * @title UniswapAnchoredViewSourceAdapter contract to read data from UniswapAnchoredView and standardize it for Oval.
  *
  */
-
 abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
     IUniswapAnchoredView public immutable UNISWAP_ANCHORED_VIEW;
     address public immutable C_TOKEN;
@@ -56,11 +55,12 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function getLatestSourceData() public view override returns (int256, uint256) {
-        (,,, uint256 latestTimestamp,) = aggregator.latestRoundData();
+    function getLatestSourceData() public view override returns (int256, uint256, uint256) {
+        (uint80 latestRoundId,,, uint256 latestTimestamp,) = aggregator.latestRoundData();
         int256 sourcePrice = int256(UNISWAP_ANCHORED_VIEW.getUnderlyingPrice(C_TOKEN));
-        return (DecimalLib.convertDecimals(sourcePrice, SOURCE_DECIMALS, 18), latestTimestamp);
+        return (DecimalLib.convertDecimals(sourcePrice, SOURCE_DECIMALS, 18), latestTimestamp, latestRoundId);
     }
 
     /**
@@ -71,9 +71,15 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) public view override returns (int256, uint256) {
+    function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
+        public
+        view
+        override
+        returns (int256, uint256, uint256)
+    {
         Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
-        return (DecimalLib.convertDecimals(snapshot.answer, SOURCE_DECIMALS, 18), snapshot.timestamp);
+        return (DecimalLib.convertDecimals(snapshot.answer, SOURCE_DECIMALS, 18), snapshot.timestamp, snapshot.roundId);
     }
 }

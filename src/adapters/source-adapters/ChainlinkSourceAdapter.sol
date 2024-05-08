@@ -9,7 +9,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
  * @title ChainlinkSourceAdapter contract to read data from Chainlink aggregator and standardize it for Oval.
  * @dev Can fetch information from Chainlink source at a desired timestamp for historic lookups.
  */
-
 abstract contract ChainlinkSourceAdapter is DiamondRootOval {
     IAggregatorV3Source public immutable CHAINLINK_SOURCE;
     uint8 private immutable SOURCE_DECIMALS;
@@ -35,16 +34,17 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
         view
         virtual
         override
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
-        (int256 answer, uint256 updatedAt) = _tryLatestRoundDataAt(timestamp, maxTraversal);
-        return (DecimalLib.convertDecimals(answer, SOURCE_DECIMALS, 18), updatedAt);
+        (int256 answer, uint256 updatedAt, uint80 roundId) = _tryLatestRoundDataAt(timestamp, maxTraversal);
+        return (DecimalLib.convertDecimals(answer, SOURCE_DECIMALS, 18), updatedAt, roundId);
     }
 
     /**
@@ -56,27 +56,33 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function getLatestSourceData() public view virtual override returns (int256, uint256) {
-        (, int256 sourceAnswer,, uint256 updatedAt,) = CHAINLINK_SOURCE.latestRoundData();
-        return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
+    function getLatestSourceData() public view virtual override returns (int256, uint256, uint256) {
+        (uint80 roundId, int256 sourceAnswer,, uint256 updatedAt,) = CHAINLINK_SOURCE.latestRoundData();
+        return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt, roundId);
     }
 
     // Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data available
     // past the requested timestamp considering the maxTraversal limitations.
-    function _tryLatestRoundDataAt(uint256 timestamp, uint256 maxTraversal) internal view returns (int256, uint256) {
+    function _tryLatestRoundDataAt(uint256 timestamp, uint256 maxTraversal)
+        internal
+        view
+        returns (int256, uint256, uint80)
+    {
         (uint80 roundId, int256 answer,, uint256 updatedAt,) = CHAINLINK_SOURCE.latestRoundData();
 
         // In the happy path there have been no source updates since requested time, so we can return the latest data.
         // We can use updatedAt property as it matches the block timestamp of the latest source transmission.
-        if (updatedAt <= timestamp) return (answer, updatedAt);
+        if (updatedAt <= timestamp) return (answer, updatedAt, roundId);
 
         // Attempt traversing historical round data backwards from roundId. This might still be newer or uninitialized.
-        (int256 historicalAnswer, uint256 historicalUpdatedAt) = _searchRoundDataAt(timestamp, roundId, maxTraversal);
+        (int256 historicalAnswer, uint256 historicalUpdatedAt, uint80 historicalRoundId) =
+            _searchRoundDataAt(timestamp, roundId, maxTraversal);
 
         // Validate returned data. If it is uninitialized we fallback to returning the current latest round data.
-        if (historicalUpdatedAt > 0) return (historicalAnswer, historicalUpdatedAt);
-        return (answer, updatedAt);
+        if (historicalUpdatedAt > 0) return (historicalAnswer, historicalUpdatedAt, historicalRoundId);
+        return (answer, updatedAt, roundId);
     }
 
     // Tries finding latest historical data (ignoring current roundId) not newer than requested timestamp. Might return
@@ -84,7 +90,7 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
     function _searchRoundDataAt(uint256 timestamp, uint80 targetRoundId, uint256 maxTraversal)
         internal
         view
-        returns (int256, uint256)
+        returns (int256, uint256, uint80)
     {
         uint80 roundId;
         int256 answer;
@@ -101,11 +107,11 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
             // aggregator that was not yet available on the aggregator proxy at the requested timestamp.
 
             (roundId, answer,, updatedAt,) = CHAINLINK_SOURCE.getRoundData(targetRoundId);
-            if (!(roundId == targetRoundId && updatedAt > 0)) return (0, 0);
-            if (updatedAt <= timestamp) return (answer, updatedAt);
+            if (!(roundId == targetRoundId && updatedAt > 0)) return (0, 0, 0);
+            if (updatedAt <= timestamp) return (answer, updatedAt, roundId);
             traversedRounds++;
         }
 
-        return (answer, updatedAt); // Did not find requested round. Return earliest round or uninitialized data.
+        return (answer, updatedAt, roundId); // Did not find requested round. Return earliest round or uninitialized data.
     }
 }

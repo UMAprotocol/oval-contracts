@@ -39,8 +39,9 @@ abstract contract Oval is DiamondRootOval {
      * @notice Returns latest data from source, governed by lockWindow controlling if returned data is stale.
      * @return answer The latest answer in 18 decimals.
      * @return timestamp The timestamp of the answer.
+     * @return roundId The roundId of the answer.
      */
-    function internalLatestData() public view override returns (int256, uint256) {
+    function internalLatestData() public view override returns (int256, uint256, uint256) {
         // Case work:
         //-> If unlockLatestValue has been called within lockWindow, then return most recent price as of unlockLatestValue call.
         //-> If unlockLatestValue has not been called in lockWindow, then return most recent value that is at least lockWindow old.

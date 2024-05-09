@@ -12,7 +12,7 @@ import {IUniswapAnchoredView} from "../../../src/interfaces/compound/IUniswapAnc
 
 contract TestedSourceAdapter is UniswapAnchoredViewSourceAdapter {
     constructor(IUniswapAnchoredView source, address cToken) UniswapAnchoredViewSourceAdapter(source, cToken) {}
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
     function lockWindow() public view virtual override returns (uint256) {}
     function maxTraversal() public view virtual override returns (uint256) {}
@@ -78,7 +78,7 @@ contract UniswapAnchoredViewSourceAdapterTest is CommonTest {
         assertTrue(latestAggregatorTimestamp > targetTime);
 
         // UniswapAnchoredView does not support historical lookups so this should still return latest data without snapshotting.
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 100);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 100);
         assertTrue(int256(latestUniswapAnchoredViewAnswer) == lookBackPrice);
         assertTrue(latestAggregatorTimestamp == lookBackTimestamp);
     }
@@ -88,18 +88,19 @@ contract UniswapAnchoredViewSourceAdapterTest is CommonTest {
 
         for (uint256 i = 0; i < snapshotAnswers.length; i++) {
             // Lookback at exact snapshot timestamp should return the same answer and timestamp.
-            (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i], 10);
+            (int256 lookBackPrice, uint256 lookBackTimestamp,) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i], 10);
             assertTrue(int256(snapshotAnswers[i]) == lookBackPrice);
             assertTrue(snapshotTimestamps[i] == lookBackTimestamp);
 
             // Source updates were more than 30 minutes apart, so lookback 30 minutes later should return the same answer.
-            (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] + 1800, 10);
+            (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] + 1800, 10);
             assertTrue(int256(snapshotAnswers[i]) == lookBackPrice);
             assertTrue(snapshotTimestamps[i] == lookBackTimestamp);
 
             // Source updates were more than 30 minutes apart, so lookback 30 minutes earlier should return the previous answer,
             // except for the first snapshot which should return the same answer as it does not have earlier data.
-            (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] - 1800, 10);
+            (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] - 1800, 10);
             if (i > 0) {
                 assertTrue(int256(snapshotAnswers[i - 1]) == lookBackPrice);
                 assertTrue(snapshotTimestamps[i - 1] == lookBackTimestamp);
@@ -116,7 +117,7 @@ contract UniswapAnchoredViewSourceAdapterTest is CommonTest {
         // If we limit how far we can lookback the source adapter snapshot should correctly return the oldest data it
         // can find, up to that limit. When searching for the earliest possible snapshot while limiting maximum snapshot
         // traversal to 1 we should still get the latest data.
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(0, 1);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(0, 1);
         uint256 latestUniswapAnchoredViewAnswer = uniswapAnchoredView.getUnderlyingPrice(cToken);
         uint256 latestAggregatorTimestamp = aggregator.latestTimestamp();
         assertTrue(int256(latestUniswapAnchoredViewAnswer) == lookBackPrice);

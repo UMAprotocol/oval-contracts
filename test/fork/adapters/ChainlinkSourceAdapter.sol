@@ -11,7 +11,7 @@ import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregator
 contract TestedSourceAdapter is ChainlinkSourceAdapter {
     constructor(IAggregatorV3Source source) ChainlinkSourceAdapter(source) {}
 
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
 
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
@@ -44,7 +44,7 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         // hour ago is simply the previous round (there was only one update in that interval due to chainlink heartbeat)
         uint256 targetTime = block.timestamp - 1 hours;
         (uint80 latestRound,,,,) = chainlink.latestRoundData();
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, int256 answer, uint256 startedAt,,) = chainlink.getRoundData(latestRound - 1);
         assertTrue(startedAt <= targetTime); // The time from the chainlink source is at least 1 hours old.
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
@@ -52,7 +52,7 @@ contract ChainlinkSourceAdapterTest is CommonTest {
 
         // Next, try looking back 2 hours. Equally, we should get the price from 2 rounds ago.
         targetTime = block.timestamp - 2 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, answer, startedAt,,) = chainlink.getRoundData(latestRound - 2);
         assertTrue(startedAt <= targetTime); // The time from the chainlink source is at least 2 hours old.
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
@@ -61,7 +61,7 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         // Now, try 3 hours old. again, The value should be at least 3 hours old. However, for this lookback the chainlink
         // souce was updated 2x in the interval. Therefore, we should get the price from 4 rounds ago.
         targetTime = block.timestamp - 3 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, answer, startedAt,,) = chainlink.getRoundData(latestRound - 4);
         assertTrue(startedAt <= block.timestamp - 3 hours); // The time from the chainlink source is at least 3 hours old.
         assertTrue(startedAt > block.timestamp - 4 hours); // Time from chainlink source is at not more than 4 hours.
@@ -72,7 +72,7 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         // that limit. From the previous tests we showed that looking back 2 hours should return the price from round 2.
         // If we try look back longer than this we should get the price from round 2, no matter how far we look back.
         uint256 targetTime = block.timestamp - 2 hours;
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         (uint80 latestRound,,,,) = chainlink.latestRoundData();
         (, int256 answer, uint256 startedAt,,) = chainlink.getRoundData(latestRound - 2);
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
@@ -80,11 +80,11 @@ contract ChainlinkSourceAdapterTest is CommonTest {
 
         // Now, lookback longer than 2 hours. should get the same value as before.
         targetTime = block.timestamp - 3 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
         assertTrue(startedAt == lookBackTimestamp);
         targetTime = block.timestamp - 10 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
         assertTrue(startedAt == lookBackTimestamp);
     }
@@ -94,7 +94,7 @@ contract ChainlinkSourceAdapterTest is CommonTest {
 
         (, int256 answer,, uint256 updatedAt,) = chainlink.latestRoundData();
 
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 0);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 0);
         assertEq(lookBackPrice / 10 ** 10, answer);
         assertEq(lookBackTimestamp, updatedAt);
     }
@@ -108,7 +108,7 @@ contract ChainlinkSourceAdapterTest is CommonTest {
             abi.encode(latestRound, 1000, block.timestamp - 5 days, block.timestamp, latestRound)
         );
 
-        (int256 resultPrice, uint256 resultTimestamp) = sourceAdapter.tryLatestDataAt(block.timestamp - 2 hours, 10);
+        (int256 resultPrice, uint256 resultTimestamp,) = sourceAdapter.tryLatestDataAt(block.timestamp - 2 hours, 10);
 
         (, int256 latestAnswer,, uint256 latestUpdatedAt,) = chainlink.latestRoundData();
 

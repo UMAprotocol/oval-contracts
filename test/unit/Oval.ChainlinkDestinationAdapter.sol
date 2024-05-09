@@ -37,7 +37,7 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
     }
 
     function verifyOvalMatchesOval() public {
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(
             latestAnswer / internalDecimalsToSourceDecimals == oval.latestAnswer()
                 && latestTimestamp == oval.latestTimestamp()

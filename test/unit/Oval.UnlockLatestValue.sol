@@ -32,7 +32,7 @@ contract OvalUnlockLatestValue is CommonTest {
     }
 
     function verifyOvalMatchesOval() public {
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == oval.latestAnswer() && latestTimestamp == oval.latestTimestamp());
     }
 
@@ -67,7 +67,7 @@ contract OvalUnlockLatestValue is CommonTest {
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
         verifyOvalMatchesOval();
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == newAnswer && latestTimestamp == newTimestamp);
 
         // Advance time. Add a diff to the source adapter and verify that it is applied.
@@ -88,7 +88,7 @@ contract OvalUnlockLatestValue is CommonTest {
         vm.prank(random);
         oval.unlockLatestValue();
 
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp);
     }
 
@@ -101,7 +101,7 @@ contract OvalUnlockLatestValue is CommonTest {
         oval.publishRoundData(newAnswer, beforeLockWindow);
 
         // Before updating, initial values from cache would be returned.
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp);
 
         // After updating we should return the new values.
@@ -119,14 +119,14 @@ contract OvalUnlockLatestValue is CommonTest {
         oval.publishRoundData(newAnswer, beforeOEVLockWindow); // Update the source.
 
         // Within original lock window (after OEV unlock), initial values from cache would be returned.
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp, "1");
 
         // Advancing time past the original lock window but before new lock window since source update
         // should not yet pass through source values.
         uint256 pastOEVLockWindow = beforeOEVLockWindow + 2;
         vm.warp(pastOEVLockWindow);
-        (latestAnswer, latestTimestamp) = oval.internalLatestData();
+        (latestAnswer, latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp);
 
         // Advancing time past the new lock window should pass through source values.
@@ -144,7 +144,7 @@ contract OvalUnlockLatestValue is CommonTest {
         oval.publishRoundData(newAnswer, beforeLockWindow);
 
         // Before updating, initial values from cache would be returned.
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp);
 
         // Sync and verify updated values.
@@ -157,7 +157,7 @@ contract OvalUnlockLatestValue is CommonTest {
         oval.publishRoundData(nextNewAnswer, nextBeforeLockWindow);
 
         // Within lock window, values from previous update would be returned.
-        (latestAnswer, latestTimestamp) = oval.internalLatestData();
+        (latestAnswer, latestTimestamp,) = oval.internalLatestData();
         assertTrue(latestAnswer == newAnswer && latestTimestamp == beforeLockWindow);
     }
 }

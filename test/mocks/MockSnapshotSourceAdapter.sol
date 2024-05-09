@@ -25,10 +25,10 @@ abstract contract MockSnapshotSourceAdapter is SnapshotSource {
         view
         virtual
         override
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         SnapshotSource.Snapshot memory latestData = _tryLatestDataAt(timestamp, maxTraversal);
-        return (latestData.answer, latestData.timestamp);
+        return (latestData.answer, latestData.timestamp, 1);
     }
 
     function _latestSourceData() internal view returns (SourceData memory) {

@@ -6,7 +6,7 @@ import {IAggregatorV3Source} from "../interfaces/chainlink/IAggregatorV3Source.s
 contract CoinbaseOracle is IAggregatorV3Source {
     address immutable reporter;
 
-    uint8 public constant decimals = 6;
+    uint8 public immutable decimals;
 
     string public symbol;
 
@@ -15,8 +15,9 @@ contract CoinbaseOracle is IAggregatorV3Source {
     mapping(uint80 => int256) public roundAnswers;
     mapping(uint80 => uint256) public roundTimestamps;
 
-    constructor(string memory _symbol, address _reporter) {
+    constructor(string memory _symbol, uint8 _decimals, address _reporter) {
         symbol = _symbol;
+        decimals = _decimals;
         reporter = _reporter;
     }
 

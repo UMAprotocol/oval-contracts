@@ -19,7 +19,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
         (address _reporter, uint256 _reporterPk) = makeAddrAndKey("reporter");
         reporter = _reporter;
         reporterPk = _reporterPk;
-        coinbaseOracle = new CoinbaseOracle("ETH", reporter);
+        coinbaseOracle = new CoinbaseOracle("ETH", 6, reporter);
     }
 
     function testPushPrice() public {

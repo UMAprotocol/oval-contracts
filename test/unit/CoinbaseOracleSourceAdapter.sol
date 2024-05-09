@@ -73,7 +73,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
         (address _reporter, uint256 _reporterPk) = makeAddrAndKey("reporter");
         reporter = _reporter;
         reporterPk = _reporterPk;
-        coinbase = new CoinbaseOracle(ticker, reporter);
+        coinbase = new CoinbaseOracle(ticker, 6, reporter);
         sourceAdapter = new TestedSourceAdapter(coinbase);
 
         // Push some prices to the oracle
@@ -183,7 +183,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
     }
 
     function testNonHistoricalData() public {
-        coinbase = new CoinbaseOracle(ticker, reporter);
+        coinbase = new CoinbaseOracle(ticker, 6, reporter);
         sourceAdapter = new TestedSourceAdapter(coinbase);
 
         // Push only one price to the oracle

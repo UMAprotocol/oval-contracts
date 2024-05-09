@@ -72,10 +72,10 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
             oval.latestRoundData();
 
         // Check that Oval return the correct values scaled to the source oracle decimals.
-        assertTrue(roundId == 1);
+        assertTrue(roundId == 2);
         assertTrue(answer == newAnswer / internalDecimalsToSourceDecimals);
         assertTrue(startedAt == newTimestamp);
         assertTrue(updatedAt == newTimestamp);
-        assertTrue(answeredInRound == 1);
+        assertTrue(answeredInRound == 2);
     }
 }

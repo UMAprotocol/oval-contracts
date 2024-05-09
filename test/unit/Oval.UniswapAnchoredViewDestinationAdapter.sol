@@ -73,7 +73,9 @@ contract OvalUniswapAnchoredViewDestinationAdapter is CommonTest {
         destinationAdapter.setOval(cTokenAddress, OvalAddress);
 
         vm.mockCall(
-            OvalAddress, abi.encodeWithSelector(IOval.internalLatestData.selector), abi.encode(newAnswer, newTimestamp)
+            OvalAddress,
+            abi.encodeWithSelector(IOval.internalLatestData.selector),
+            abi.encode(newAnswer, newTimestamp, 1)
         );
         uint256 underlyingPrice = destinationAdapter.getUnderlyingPrice(cTokenAddress);
 

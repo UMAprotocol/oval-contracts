@@ -49,14 +49,8 @@ abstract contract ChainlinkDestinationAdapter is DiamondRootOval, IAggregatorV3 
      * hardcodes to 1).
      */
     function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
-        (int256 answer, uint256 updatedAt, uint256 roundId) = internalLatestData();
-
-        return (
-            SafeCast.toUint80(roundId),
-            DecimalLib.convertDecimals(answer, 18, decimals),
-            updatedAt,
-            updatedAt,
-            SafeCast.toUint80(roundId)
-        );
+        (int256 answer, uint256 updatedAt, uint256 _roundId) = internalLatestData();
+        roundId = SafeCast.toUint80(_roundId);
+        return (roundId, DecimalLib.convertDecimals(answer, 18, decimals), updatedAt, updatedAt, roundId);
     }
 }

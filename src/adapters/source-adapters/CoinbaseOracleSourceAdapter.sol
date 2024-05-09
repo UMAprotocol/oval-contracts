@@ -7,8 +7,8 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
 import {console} from "forge-std/console.sol";
 
 /**
- * @title ChainlinkSourceAdapter contract to read data from Chainlink aggregator and standardize it for Oval.
- * @dev Can fetch information from Chainlink source at a desired timestamp for historic lookups.
+ * @title CoinbaseOracleSourceAdapter contract to read data from CoinbaseOracle and standardize it for Oval.
+ * @dev Can fetch information from CoinbaseOracle source at a desired timestamp for historic lookups.
  */
 
 abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
@@ -47,7 +47,7 @@ abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
     }
 
     /**
-     * @notice Initiate a snapshot of the source data. This is a no-op for Chainlink.
+     * @notice Initiate a snapshot of the source data. This is a no-op for Coinbase.
      */
     function snapshotData() public virtual override {}
 
@@ -98,7 +98,6 @@ abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
 
     // Tries finding latest historical data (ignoring current roundId) not newer than requested timestamp. Might return
     // newer data than requested if exceeds traversal or hold uninitialized data that should be handled by the caller.
-    // @dev targetRoundId >= traversedRounds is used to allow returning uninitialized data if no historical data is found.
     function _searchRoundDataAt(
         uint256 timestamp,
         uint80 targetRoundId,

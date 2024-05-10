@@ -25,6 +25,8 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
 
     TestOval oval;
 
+    uint256 latestPublishedRound;
+
     function setUp() public {
         vm.warp(initialTimestamp);
 
@@ -33,7 +35,12 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
         oval.setUnlocker(permissionedUnlocker, true);
         vm.stopPrank();
 
-        oval.publishRoundData(initialPrice, initialTimestamp);
+        publishRoundData(initialPrice, initialTimestamp);
+    }
+
+    function publishRoundData(int256 answer, uint256 timestamp) public {
+        oval.publishRoundData(answer, timestamp);
+        ++latestPublishedRound;
     }
 
     function verifyOvalMatchesOval() public {
@@ -53,7 +60,7 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
 
     function testUpdatesWithinLockWindow() public {
         // Publish an update to the mock source adapter.
-        oval.publishRoundData(newAnswer, newTimestamp);
+        publishRoundData(newAnswer, newTimestamp);
 
         syncOvalWithOval();
         assertTrue(oval.lastUnlockTime() == block.timestamp);
@@ -72,10 +79,10 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
             oval.latestRoundData();
 
         // Check that Oval return the correct values scaled to the source oracle decimals.
-        assertTrue(roundId == 2); // We published twice and roundId starts at 1.
+        assertTrue(roundId == latestPublishedRound);
         assertTrue(answer == newAnswer / internalDecimalsToSourceDecimals);
         assertTrue(startedAt == newTimestamp);
         assertTrue(updatedAt == newTimestamp);
-        assertTrue(answeredInRound == 2); // We published twice and roundId starts at 1.
+        assertTrue(answeredInRound == latestPublishedRound);
     }
 }

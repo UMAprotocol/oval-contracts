@@ -13,6 +13,7 @@ import {IUniswapAnchoredView} from "../../../src/interfaces/compound/IUniswapAnc
 contract TestedSourceAdapter is UniswapAnchoredViewSourceAdapter {
     constructor(IUniswapAnchoredView source, address cToken) UniswapAnchoredViewSourceAdapter(source, cToken) {}
     function internalLatestData() public view override returns (int256, uint256, uint256) {}
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
     function lockWindow() public view virtual override returns (uint256) {}
     function maxTraversal() public view virtual override returns (uint256) {}

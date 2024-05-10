@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
+
 import {DecimalLib} from "../lib/DecimalLib.sol";
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
 import {DiamondRootOval} from "../../DiamondRootOval.sol";
@@ -59,6 +61,18 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
      */
     function getLatestSourceData() public view virtual override returns (int256, uint256) {
         (, int256 sourceAnswer,, uint256 updatedAt,) = CHAINLINK_SOURCE.latestRoundData();
+        return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
+    }
+
+    /**
+     * @notice Returns the requested round data from the source.
+     * @dev If the source does not have the requested round it would return uninitialized data.
+     * @param roundId The roundId to retrieve the round data for.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function getSourceDataAtRound(uint256 roundId) public view virtual override returns (int256, uint256) {
+        (, int256 sourceAnswer,, uint256 updatedAt,) = CHAINLINK_SOURCE.getRoundData(SafeCast.toUint80(roundId));
         return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
     }
 

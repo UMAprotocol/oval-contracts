@@ -63,6 +63,16 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
     }
 
     /**
+     * @notice Returns the requested round data from the source.
+     * @dev UniswapAnchoredView does not support this and returns uninitialized data.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function getSourceDataAtRound(uint256 /* roundId */ ) public view virtual override returns (int256, uint256) {
+        return (0, 0);
+    }
+
+    /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
      * @dev UniswapAnchoredView does not support historical lookups so this uses SnapshotSource to get historic data.

@@ -19,6 +19,15 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
     function getLatestSourceData() public view virtual returns (int256, uint256);
 
     /**
+     * @notice Returns the requested round data from the source.
+     * @dev If the source does not support rounds this would return uninitialized data.
+     * @param roundId The roundId to retrieve the round data for.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function getSourceDataAtRound(uint256 roundId) public view virtual returns (int256, uint256);
+
+    /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
      * @param timestamp The timestamp to try getting latest data at.
@@ -41,6 +50,16 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
      * @return roundId The roundId of the answer.
      */
     function internalLatestData() public view virtual returns (int256, uint256, uint256);
+
+    /**
+     * @notice Returns the requested round data from the source. Depending on when Oval was last unlocked this might
+     * also return uninitialized value to protect the OEV from being stolen by a front runner.
+     * @dev If the source does not support rounds this would always return uninitialized data.
+     * @param roundId The roundId to retrieve the round data for.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function internalDataAtRound(uint256 roundId) public view virtual returns (int256, uint256);
 
     /**
      * @notice Snapshot the current source data. Is a no-op if the source does not require snapshotting.

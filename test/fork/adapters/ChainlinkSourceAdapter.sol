@@ -13,6 +13,8 @@ contract TestedSourceAdapter is ChainlinkSourceAdapter {
 
     function internalLatestData() public view override returns (int256, uint256, uint256) {}
 
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
+
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
     function lockWindow() public view virtual override returns (uint256) {}

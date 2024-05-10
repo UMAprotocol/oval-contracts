@@ -53,4 +53,19 @@ abstract contract ChainlinkDestinationAdapter is DiamondRootOval, IAggregatorV3 
         uint80 roundId = SafeCast.toUint80(_roundId);
         return (roundId, DecimalLib.convertDecimals(answer, 18, decimals), updatedAt, updatedAt, roundId);
     }
+
+    /**
+     * @notice Returns the requested round data if available or uninitialized values then it is too recent.
+     * @dev If the source does not support round data, always returns uninitialized answer and timestamp values.
+     * @param _roundId The roundId to retrieve the round data for.
+     * @return roundId The roundId of the latest answer (same as requested roundId).
+     * @return answer The latest answer in the configured number of decimals.
+     * @return startedAt The timestamp when the value was updated.
+     * @return updatedAt The timestamp when the value was updated.
+     * @return answeredInRound The roundId of the round in which the answer was computed (same as requested roundId).
+     */
+    function getRoundData(uint80 _roundId) external view returns (uint80, int256, uint256, uint256, uint80) {
+        (int256 answer, uint256 updatedAt) = internalDataAtRound(_roundId);
+        return (_roundId, DecimalLib.convertDecimals(answer, 18, decimals), updatedAt, updatedAt, _roundId);
+    }
 }

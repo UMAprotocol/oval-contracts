@@ -46,4 +46,23 @@ abstract contract Oval is DiamondRootOval {
         //-> If unlockLatestValue has not been called in lockWindow, then return most recent value that is at least lockWindow old.
         return tryLatestDataAt(Math.max(lastUnlockTime, block.timestamp - lockWindow()), maxTraversal());
     }
+
+    /**
+     * @notice Returns the requested round data from the source. Depending on when Oval was last unlocked this might
+     * also return uninitialized values to protect the OEV from being stolen by a front runner.
+     * @dev If the source does not support rounds this would always return uninitialized data.
+     * @param roundId The roundId to retrieve the round data for.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {
+        (int256 answer, uint256 timestamp) = getSourceDataAtRound(roundId);
+
+        // Return source data for the requested round only if it has been either explicitly or implicitly unlocked:
+        //-> explicit unlock when source time is not newer than the time when last unlockLatestValue has been called, or
+        //-> implicit unlock when source data is at least lockWindow old.
+        uint256 latestUnlockedTimestamp = Math.max(lastUnlockTime, block.timestamp - lockWindow());
+        if (timestamp <= latestUnlockedTimestamp) return (answer, timestamp);
+        return (0, 0); // Source data is too recent, return uninitialized values.
+    }
 }

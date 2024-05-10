@@ -20,6 +20,10 @@ abstract contract MockSnapshotSourceAdapter is SnapshotSource {
         return (latestData.answer, latestData.timestamp);
     }
 
+    function getSourceDataAtRound(uint256 /* roundId */ ) public view virtual override returns (int256, uint256) {
+        return (0, 0);
+    }
+
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
         view

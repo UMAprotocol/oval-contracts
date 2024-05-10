@@ -41,6 +41,14 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         assertTrue(latestSourceTimestamp == latestChainlinkTimestamp);
     }
 
+    function testCorrectlyStandardizesRoundOutputs() public {
+        (uint80 latestRound,,,,) = chainlink.latestRoundData();
+        (, int256 chainlinkAnswer,, uint256 chainlinkTimestamp,) = chainlink.getRoundData(latestRound);
+        (int256 sourceAnswer, uint256 sourceTimestamp) = sourceAdapter.getSourceDataAtRound(latestRound);
+        assertTrue(scaleChainlinkTo18(chainlinkAnswer) == sourceAnswer);
+        assertTrue(sourceTimestamp == chainlinkTimestamp);
+    }
+
     function testCorrectlyLooksBackThroughRounds() public {
         // Try fetching the price an hour before. At the sample data block there was not a lot of price action and one
         // hour ago is simply the previous round (there was only one update in that interval due to chainlink heartbeat)
@@ -129,6 +137,13 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         assertTrue(resultPrice == DecimalLib.convertDecimals(latestAnswer, 8, 18));
         assertTrue(resultTimestamp == latestUpdatedAt);
         assertTrue(uint256(latestRound) == lookBackRoundId);
+    }
+
+    function testNonExistentRoundData() public {
+        (uint80 latestRound,,,,) = chainlink.latestRoundData();
+        (int256 sourceAnswer, uint256 sourceTimestamp) = sourceAdapter.getSourceDataAtRound(latestRound + 1);
+        assertTrue(sourceAnswer == 0);
+        assertTrue(sourceTimestamp == 0);
     }
 
     function scaleChainlinkTo18(int256 input) public pure returns (int256) {

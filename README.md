@@ -13,6 +13,14 @@ This repository contains the main smart contracts for Oval. It uses [Foundry](ht
 
 This repo also consists of a set of scripts used to profile the Oval gas usage. See [README](./scripts/README.md) that shows how to run these and [this](https://docs.oval.xyz/contract-architecture/gas-profiling) docs page that outlines the gas profiling finding.
 
+### Installing Foundry
+
+Tests in this repo work up to [Nightly (2024-03-02)](https://github.com/foundry-rs/foundry/releases/tag/nightly-de33b6af53005037b463318d2628b5cfcaf39916) Foundry version, so make sure to use it when installing:
+
+```
+foundryup -v nightly-de33b6af53005037b463318d2628b5cfcaf39916
+```
+
 ### Building Contracts
 
 ```

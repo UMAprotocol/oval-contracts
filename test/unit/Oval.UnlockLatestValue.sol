@@ -174,4 +174,31 @@ contract OvalUnlockLatestValue is CommonTest {
         assertTrue(latestAnswer == newAnswer && latestTimestamp == beforeLockWindow);
         assertTrue(latestRoundId == latestPublishedRound - 1);
     }
+
+    function testReturnUninitializedRoundData() public {
+        // Advance time to within the lock window and update the source.
+        uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
+        vm.warp(beforeLockWindow);
+        publishRoundData(newAnswer, newTimestamp);
+
+        // Before updating, uninitialized values would be returned.
+        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalDataAtRound(latestPublishedRound);
+        assertTrue(latestAnswer == 0 && latestTimestamp == 0);
+    }
+
+    function testReturnUnlockedRoundData() public {
+        // Advance time to within the lock window and update the source.
+        uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
+        vm.warp(beforeLockWindow);
+        publishRoundData(newAnswer, newTimestamp);
+
+        // Unlock new round values.
+        vm.prank(permissionedUnlocker);
+        oval.unlockLatestValue();
+        verifyOvalMatchesOval();
+
+        // After unlock we should return the new values.
+        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalDataAtRound(latestPublishedRound);
+        assertTrue(latestAnswer == newAnswer && latestTimestamp == newTimestamp);
+    }
 }

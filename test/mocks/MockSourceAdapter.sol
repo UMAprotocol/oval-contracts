@@ -41,7 +41,7 @@ abstract contract MockSourceAdapter is DiamondRootOval {
     }
 
     function getSourceDataAtRound(uint256 roundId) public view virtual override returns (int256, uint256) {
-        if (roundId == 0 || rounds.length <= roundId) return (0, 0);
+        if (roundId == 0 || rounds.length < roundId) return (0, 0);
         RoundData memory roundData = rounds[roundId - 1];
         return (roundData.answer, roundData.timestamp);
     }

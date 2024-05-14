@@ -9,7 +9,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
  * @title ChainlinkSourceAdapter contract to read data from Chainlink aggregator and standardize it for Oval.
  * @dev Can fetch information from Chainlink source at a desired timestamp for historic lookups.
  */
-
 abstract contract ChainlinkSourceAdapter is DiamondRootOval {
     IAggregatorV3Source public immutable CHAINLINK_SOURCE;
     uint8 private immutable SOURCE_DECIMALS;

@@ -25,54 +25,25 @@ contract CoinbaseOracle is IAggregatorV3Source {
         external
         view
         override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         int256 latestAnswer = roundAnswers[lastRoundId];
         uint256 latestTimestamp = roundTimestamps[lastRoundId];
-        return (
-            lastRoundId,
-            latestAnswer,
-            latestTimestamp,
-            latestTimestamp,
-            lastRoundId
-        );
+        return (lastRoundId, latestAnswer, latestTimestamp, latestTimestamp, lastRoundId);
     }
 
-    function getRoundData(
-        uint80 _roundId
-    )
+    function getRoundData(uint80 _roundId)
         external
         view
         override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         int256 latestAnswer = roundAnswers[_roundId];
         uint256 latestTimestamp = roundTimestamps[_roundId];
-        return (
-            _roundId,
-            latestAnswer,
-            latestTimestamp,
-            latestTimestamp,
-            _roundId
-        );
+        return (_roundId, latestAnswer, latestTimestamp, latestTimestamp, _roundId);
     }
 
-    function pushPrice(
-        bytes memory priceData,
-        bytes memory signature
-    ) external {
+    function pushPrice(bytes memory priceData, bytes memory signature) external {
         (
             string memory kind, // e.g. "price"
             uint256 timestamp, // e.g. 1629350000
@@ -82,22 +53,11 @@ contract CoinbaseOracle is IAggregatorV3Source {
 
         uint256 latestTimestamp = roundTimestamps[lastRoundId];
 
-        require(
-            keccak256(abi.encodePacked(kind)) ==
-                keccak256(abi.encodePacked("price")),
-            "Invalid kind."
-        );
+        require(keccak256(abi.encodePacked(kind)) == keccak256(abi.encodePacked("price")), "Invalid kind.");
         require(price < uint256(type(int256).max), "Price exceeds max value.");
         require(timestamp > latestTimestamp, "Invalid timestamp.");
-        require(
-            keccak256(abi.encodePacked(ticker)) ==
-                keccak256(abi.encodePacked(symbol)),
-            "Invalid ticker."
-        );
-        require(
-            recoverSigner(priceData, signature) == reporter,
-            "Invalid signature."
-        );
+        require(keccak256(abi.encodePacked(ticker)) == keccak256(abi.encodePacked(symbol)), "Invalid ticker.");
+        require(recoverSigner(priceData, signature) == reporter, "Invalid signature.");
 
         lastRoundId++;
         roundAnswers[lastRoundId] = int256(price);
@@ -105,20 +65,9 @@ contract CoinbaseOracle is IAggregatorV3Source {
     }
 
     // Internal function to recover the signer of a message
-    function recoverSigner(
-        bytes memory message,
-        bytes memory signature
-    ) public pure returns (address) {
-        (bytes32 r, bytes32 s, uint8 v) = abi.decode(
-            signature,
-            (bytes32, bytes32, uint8)
-        );
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                "\x19Ethereum Signed Message:\n32",
-                keccak256(message)
-            )
-        );
+    function recoverSigner(bytes memory message, bytes memory signature) public pure returns (address) {
+        (bytes32 r, bytes32 s, uint8 v) = abi.decode(signature, (bytes32, bytes32, uint8));
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message)));
         return ecrecover(hash, v, r, s);
     }
 }

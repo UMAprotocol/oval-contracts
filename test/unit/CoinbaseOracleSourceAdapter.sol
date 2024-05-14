@@ -11,21 +11,11 @@ import {IAggregatorV3Source} from "../../src/interfaces/chainlink/IAggregatorV3S
 import {CoinbaseOracle} from "../../src/oracles/CoinbaseOracle.sol";
 
 contract TestedSourceAdapter is CoinbaseOracleSourceAdapter {
-    constructor(
-        IAggregatorV3Source source
-    ) CoinbaseOracleSourceAdapter(source) {}
+    constructor(IAggregatorV3Source source) CoinbaseOracleSourceAdapter(source) {}
 
-    function internalLatestData()
-        public
-        view
-        override
-        returns (int256, uint256)
-    {}
+    function internalLatestData() public view override returns (int256, uint256) {}
 
-    function canUnlock(
-        address caller,
-        uint256 cachedLatestTimestamp
-    ) public view virtual override returns (bool) {}
+    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
     function lockWindow() public view virtual override returns (uint256) {}
 
@@ -42,21 +32,12 @@ contract CoinbaseSourceAdapterTest is CommonTest {
     string public ticker = "ETH";
     uint256 public price = 3000e6;
 
-    function pushPrice(
-        string memory ticker,
-        uint256 price,
-        uint256 timestamp
-    ) public {
+    function pushPrice(string memory ticker, uint256 price, uint256 timestamp) public {
         string memory kind = "price";
 
         bytes memory encodedData = abi.encode(kind, timestamp, ticker, price);
 
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                "\x19Ethereum Signed Message:\n32",
-                keccak256(encodedData)
-            )
-        );
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(encodedData)));
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(reporterPk, hash);
 
@@ -88,40 +69,20 @@ contract CoinbaseSourceAdapterTest is CommonTest {
     }
 
     function testCorrectlyStandardizesOutputs() public {
-        (
-            ,
-            int256 latestCoinbasePrice,
-            ,
-            uint256 latestCoinbaseTimestamp,
+        (, int256 latestCoinbasePrice,, uint256 latestCoinbaseTimestamp,) = coinbase.latestRoundData();
+        (int256 latestSourceAnswer, uint256 latestSourceTimestamp) = sourceAdapter.getLatestSourceData();
 
-        ) = coinbase.latestRoundData();
-        (
-            int256 latestSourceAnswer,
-            uint256 latestSourceTimestamp
-        ) = sourceAdapter.getLatestSourceData();
-
-        assertTrue(
-            scaleCoinbaseTo18(latestCoinbasePrice) == latestSourceAnswer
-        );
+        assertTrue(scaleCoinbaseTo18(latestCoinbasePrice) == latestSourceAnswer);
         assertTrue(latestSourceTimestamp == latestCoinbaseTimestamp);
     }
 
     function testCorrectlyLooksBackThroughRounds() public {
-        (
-            uint80 latestRound,
-            int256 latestAnswer,
-            ,
-            uint256 latestUpdatedAt,
-
-        ) = coinbase.latestRoundData();
+        (uint80 latestRound, int256 latestAnswer,, uint256 latestUpdatedAt,) = coinbase.latestRoundData();
         assertTrue(uint256(latestAnswer) == price - 1500);
 
         uint256 targetTime = block.timestamp - 1 hours;
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter
-            .tryLatestDataAt(targetTime, 10);
-        (, int256 answer, uint256 startedAt, , ) = coinbase.getRoundData(
-            latestRound - 1
-        );
+        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (, int256 answer, uint256 startedAt,,) = coinbase.getRoundData(latestRound - 1);
         assertTrue(startedAt <= targetTime); // The time from the chainlink source is at least 1 hours old.
         assertTrue(scaleCoinbaseTo18(answer) == lookBackPrice);
         assertTrue(uint256(answer) == (price - 1000));
@@ -129,11 +90,8 @@ contract CoinbaseSourceAdapterTest is CommonTest {
 
         // Next, try looking back 2 hours. Equally, we should get the price from 2 rounds ago.
         targetTime = block.timestamp - 2 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(
-            targetTime,
-            10
-        );
-        (, answer, startedAt, , ) = coinbase.getRoundData(latestRound - 2);
+        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (, answer, startedAt,,) = coinbase.getRoundData(latestRound - 2);
         assertTrue(startedAt <= targetTime); // The time from the chainlink source is at least 2 hours old.
         assertTrue(scaleCoinbaseTo18(answer) == lookBackPrice);
         assertTrue(uint256(answer) == (price - 500));
@@ -141,10 +99,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
 
         // Now, try 4 hours old, this time we don't have data from 4 hours ago, so we should get the latest data available.
         targetTime = block.timestamp - 4 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(
-            targetTime,
-            10
-        );
+        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
 
         assertTrue(scaleCoinbaseTo18(latestAnswer) == lookBackPrice);
         assertTrue(latestUpdatedAt == lookBackTimestamp);
@@ -155,29 +110,20 @@ contract CoinbaseSourceAdapterTest is CommonTest {
         // that limit. From the previous tests we showed that looking back 2 hours should return the price from round 2.
         // If we try look back longer than this we should get the price from round 2, no matter how far we look back.
         uint256 targetTime = block.timestamp - 2 hours;
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter
-            .tryLatestDataAt(targetTime, 2);
-        (uint80 latestRound, , , , ) = coinbase.latestRoundData();
-        (, int256 answer, uint256 startedAt, , ) = coinbase.getRoundData(
-            latestRound - 2
-        );
+        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (uint80 latestRound,,,,) = coinbase.latestRoundData();
+        (, int256 answer, uint256 startedAt,,) = coinbase.getRoundData(latestRound - 2);
 
         assertTrue(scaleCoinbaseTo18(answer) == lookBackPrice);
         assertTrue(startedAt == lookBackTimestamp);
 
         // Now, lookback longer than 2 hours. should get the same value as before.
         targetTime = block.timestamp - 3 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(
-            targetTime,
-            2
-        );
+        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleCoinbaseTo18(answer) == lookBackPrice);
         assertTrue(startedAt == lookBackTimestamp);
         targetTime = block.timestamp - 10 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(
-            targetTime,
-            2
-        );
+        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleCoinbaseTo18(answer) == lookBackPrice);
         assertTrue(startedAt == lookBackTimestamp);
     }
@@ -192,10 +138,9 @@ contract CoinbaseSourceAdapterTest is CommonTest {
 
         uint256 targetTime = block.timestamp - 1 hours;
 
-        (, int256 answer, , uint256 updatedAt, ) = coinbase.latestRoundData();
+        (, int256 answer,, uint256 updatedAt,) = coinbase.latestRoundData();
 
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter
-            .tryLatestDataAt(targetTime, 0);
+        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 0);
         assertEq(lookBackPrice, scaleCoinbaseTo18(answer));
         assertEq(lookBackTimestamp, updatedAt);
     }

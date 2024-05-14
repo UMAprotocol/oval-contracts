@@ -14,7 +14,6 @@ import {IOval} from "../../interfaces/IOval.sol";
  * that it uses to return the correct price for each cToken. This is needed as the UniswapAnchoredView interface is a
  * one to many relationship with cTokens, and so we need to be able to return the correct price for each cToken.
  */
-
 contract UniswapAnchoredViewDestinationAdapter is Ownable, IUniswapAnchoredView {
     mapping(address => address) public cTokenToOval;
     mapping(address => uint8) public cTokenToDecimal;

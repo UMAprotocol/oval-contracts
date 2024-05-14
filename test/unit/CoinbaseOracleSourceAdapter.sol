@@ -2,7 +2,6 @@
 pragma solidity 0.8.17;
 
 import {CommonTest} from "../Common.sol";
-import {console} from "forge-std/console.sol";
 
 import {BaseController} from "../../src/controllers/BaseController.sol";
 import {CoinbaseOracleSourceAdapter} from "../../src/adapters/source-adapters/CoinbaseOracleSourceAdapter.sol";

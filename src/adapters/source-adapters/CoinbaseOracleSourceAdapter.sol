@@ -4,7 +4,6 @@ pragma solidity 0.8.17;
 import {DecimalLib} from "../lib/DecimalLib.sol";
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
 import {DiamondRootOval} from "../../DiamondRootOval.sol";
-import {console} from "forge-std/console.sol";
 
 /**
  * @title CoinbaseOracleSourceAdapter contract to read data from CoinbaseOracle and standardize it for Oval.

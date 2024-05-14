@@ -6,7 +6,8 @@ import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Sourc
 import {DiamondRootOval} from "../../DiamondRootOval.sol";
 
 /**
- * @title CoinbaseOracleSourceAdapter contract to read data from CoinbaseOracle and standardize it for Oval.
+ * @title CoinbaseOracleSourceAdapter
+ * @notice A contract to read data from CoinbaseOracle and standardize it for Oval.
  * @dev Can fetch information from CoinbaseOracle source at a desired timestamp for historic lookups.
  */
 abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
@@ -23,11 +24,11 @@ abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
     }
 
     /**
-     * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
-     * available past the requested timestamp within provided traversal limitations.
-     * @param timestamp The timestamp to try getting latest data at.
+     * @notice Tries getting the latest data as of the requested timestamp.
+     * If this is not possible, returns the earliest data available past the requested timestamp within provided traversal limitations.
+     * @param timestamp The timestamp to try getting the latest data at.
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
-     * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
+     * @return answer The answer as of the requested timestamp, or the earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
@@ -56,40 +57,41 @@ abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
         return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
     }
 
-    // Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data available
-    // past the requested timestamp considering the maxTraversal limitations.
+    // Tries getting the latest data as of the requested timestamp. If this is not possible,
+    // returns the earliest data available past the requested timestamp considering the maxTraversal limitations.
     function _tryLatestRoundDataAt(uint256 timestamp, uint256 maxTraversal) internal view returns (int256, uint256) {
         (uint80 roundId, int256 answer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData();
 
-        // In the happy path there have been no source updates since requested time, so we can return the latest data.
-        // We can use updatedAt property as it matches the block timestamp of the latest source transmission.
-        if (updatedAt <= timestamp) return (answer, updatedAt);
+        // If the latest update is older than or equal to the requested timestamp, return the latest data.
+        if (updatedAt <= timestamp) {
+            return (answer, updatedAt);
+        }
 
-        // Attempt traversing historical round data backwards from roundId. This might still be newer or uninitialized.
+        // Attempt traversing historical round data backwards from roundId.
         (int256 historicalAnswer, uint256 historicalUpdatedAt) = _searchRoundDataAt(timestamp, roundId, maxTraversal);
 
-        // Validate returned data. If it is uninitialized we fallback to returning the current latest round data.
+        // Validate returned data. If it is uninitialized, fall back to returning the current latest round data.
         if (historicalUpdatedAt > 0) {
             return (historicalAnswer, historicalUpdatedAt);
         }
+
         return (answer, updatedAt);
     }
 
-    // Tries finding latest historical data (ignoring current roundId) not newer than requested timestamp. Might return
-    // newer data than requested if exceeds traversal or hold uninitialized data that should be handled by the caller.
-    function _searchRoundDataAt(uint256 timestamp, uint80 targetRoundId, uint256 maxTraversal)
+    // Searches for the latest historical data not newer than the requested timestamp.
+    // Returns newer data than requested if it exceeds traversal limits or holds uninitialized data that should be handled by the caller.
+    function _searchRoundDataAt(uint256 timestamp, uint80 latestRoundId, uint256 maxTraversal)
         internal
         view
         returns (int256, uint256)
     {
         int256 answer;
         uint256 updatedAt;
-        uint80 traversedRounds = 1; // Start from 1 to avoid checking the current round.
-
-        while (traversedRounds <= uint80(maxTraversal) && targetRoundId >= traversedRounds) {
-            (, answer,, updatedAt,) = COINBASE_SOURCE.getRoundData(targetRoundId - traversedRounds);
-            if (updatedAt <= timestamp) return (answer, updatedAt);
-            traversedRounds++;
+        for (uint80 i = 1; i <= maxTraversal && latestRoundId >= i; i++) {
+            (, answer,, updatedAt,) = COINBASE_SOURCE.getRoundData(latestRoundId - i);
+            if (updatedAt <= timestamp) {
+                return (answer, updatedAt);
+            }
         }
 
         return (answer, updatedAt); // Did not find requested round. Return earliest round or uninitialized data.

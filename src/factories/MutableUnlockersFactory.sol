@@ -10,7 +10,7 @@ import {IAggregatorV3Source} from "../interfaces/chainlink/IAggregatorV3Source.s
 contract OvalChainlink is MutableUnlockersController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
     constructor(IAggregatorV3Source source, address[] memory unlockers, uint256 _lockWindow, uint256 _maxTraversal, address owner)
         ChainlinkSourceAdapter(source)
-        MutableUnlockersController(_lockwindow, _maxTraversal, unlockers)
+        MutableUnlockersController(_lockWindow, _maxTraversal, unlockers)
         ChainlinkDestinationAdapter(source.decimals())
     {
         _transferOwnership(owner);   
@@ -20,7 +20,7 @@ contract OvalChainlink is MutableUnlockersController, ChainlinkSourceAdapter, Ch
 contract MutableUnlockersFactory {
     uint256 public immutable LOCK_WINDOW;
     uint256 public immutable MAX_TRAVERSAL;
-    uint256 public immutable OWNER;
+    address public immutable OWNER;
     address[] public unlockers;
 
     constructor(uint256 lockWindow, uint256 maxTraversal, address owner, address[] memory _unlockers) {
@@ -28,13 +28,13 @@ contract MutableUnlockersFactory {
         MAX_TRAVERSAL = maxTraversal;
         OWNER = owner;
 
-        for (uin256 i = 0; i < _unlockers.length; i++) {
+        for (uint256 i = 0; i < _unlockers.length; i++) {
             unlockers.push(_unlockers[i]);
         }
     }
 
     function createChainlink(IAggregatorV3Source source) external returns (address) {
-        return new OvalChainlink(source, unlockers, LOCK_WINDOW, MAX_TRAVERSAL, OWNER);
+        return address(new OvalChainlink(source, unlockers, LOCK_WINDOW, MAX_TRAVERSAL, OWNER));
     }
 
     // Add other create functions here.

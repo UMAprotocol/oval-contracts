@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.4;
 
-import "../../../../@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./RedstoneConstants.sol";
 import "./RedstoneDefaultsLib.sol";

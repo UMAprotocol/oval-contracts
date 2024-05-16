@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.14;
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import {RedstoneAdapterBase} from "../core/RedstoneAdapterBase.sol";
 
 /**

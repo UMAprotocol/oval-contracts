@@ -8,7 +8,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
  * implementation that consumers can connect with if they don't want to use an opinionated destination Adapter.
  *
  */
-
 abstract contract BaseDestinationAdapter is DiamondRootOval {
     uint8 public constant decimals = 18;
 

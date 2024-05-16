@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import {IMedian} from "../../interfaces/chronicle/IMedian.sol";
@@ -7,7 +7,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
 /**
  * @notice ChronicleMedianDestinationAdapter contract to expose Oval data via the standard Chronicle interface.
  */
-
 abstract contract ChronicleMedianDestinationAdapter is IMedian, DiamondRootOval {
     constructor(address _sourceAdapter) {}
 

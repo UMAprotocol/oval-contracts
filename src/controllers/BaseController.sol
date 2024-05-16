@@ -8,7 +8,6 @@ import {Oval} from "../Oval.sol";
  * @title BaseController providing the simplest possible controller logic to govern who can unlock Oval.
  * @dev Custom Controllers can be created to provide more granular control over who can unlock Oval.
  */
-
 abstract contract BaseController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private lockWindow_ = 60; // The lockWindow in seconds.

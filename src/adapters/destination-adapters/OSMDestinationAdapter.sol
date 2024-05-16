@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import {IOSM} from "../../interfaces/makerdao/IOSM.sol";
@@ -7,7 +7,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
 /**
  * @title OSMDestinationAdapter contract to expose Oval data via the standard MakerDAO OSM interface.
  */
-
 abstract contract OSMDestinationAdapter is IOSM, DiamondRootOval {
     constructor() {}
 

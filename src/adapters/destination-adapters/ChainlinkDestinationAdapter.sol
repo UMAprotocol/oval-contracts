@@ -8,7 +8,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
 /**
  * @title ChainlinkDestinationAdapter contract to expose Oval data via the standard Chainlink Aggregator interface.
  */
-
 abstract contract ChainlinkDestinationAdapter is DiamondRootOval, IAggregatorV3 {
     uint8 public immutable override decimals;
 

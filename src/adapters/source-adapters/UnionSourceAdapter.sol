@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
@@ -14,7 +14,6 @@ import {SnapshotSource} from "./SnapshotSource.sol";
  * @dev This adapter only works with Chainlink, Chronicle and Pyth adapters. If alternative adapter configs are desired
  * then a new adapter should be created.
  */
-
 abstract contract UnionSourceAdapter is ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter {
     constructor(IAggregatorV3Source chainlink, IMedian chronicle, IPyth pyth, bytes32 pythPriceId)
         ChainlinkSourceAdapter(chainlink)

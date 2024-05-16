@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import {SnapshotSource} from "./SnapshotSource.sol";
@@ -7,7 +7,6 @@ import {IOSM} from "../../interfaces/makerdao/IOSM.sol";
 /**
  * @title OSMSourceAdapter contract to read data from MakerDAO OSM and standardize it for Oval.
  */
-
 abstract contract OSMSourceAdapter is SnapshotSource {
     IOSM public immutable osmSource;
 

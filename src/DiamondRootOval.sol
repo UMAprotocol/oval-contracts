@@ -10,7 +10,6 @@ import {IOval} from "./interfaces/IOval.sol";
  * need. They are exposed here to simplify the inheritance structure of Oval contract system and to enable easier
  * composability and extensibility at the integration layer, enabling arbitrary combinations of sources and destinations.
  */
-
 abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter {
     /**
      * @notice Returns the latest data from the source.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import {IPyth} from "../../interfaces/pyth/IPyth.sol";
@@ -8,7 +8,6 @@ import {DecimalLib} from "../lib/DecimalLib.sol";
 /**
  * @title PythSourceAdapter contract to read data from Pyth and standardize it for Oval.
  */
-
 abstract contract PythSourceAdapter is SnapshotSource {
     IPyth public immutable PYTH_SOURCE;
     bytes32 public immutable PYTH_PRICE_ID;

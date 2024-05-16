@@ -55,9 +55,12 @@ abstract contract BoundedUnionSourceAdapter is
     }
 
     /**
-     * @notice Snapshots is a no-op for this adapter as its never used.
+     * @notice Snapshots data from all sources that require it.
      */
-    function snapshotData() public override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter) {}
+    function snapshotData() public override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter) {
+        ChronicleMedianSourceAdapter.snapshotData();
+        PythSourceAdapter.snapshotData();
+    }
 
     /**
      * @notice Tries getting latest data as of requested timestamp. Note that for all historic lookups we simply return
@@ -73,12 +76,14 @@ abstract contract BoundedUnionSourceAdapter is
         override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
         returns (int256, uint256)
     {
-        // Chainlink has price history, so use tryLatestDataAt to pull the most recent price that satisfies the timestamp constraint.
+        // Chainlink has native price history, so use tryLatestDataAt to pull the most recent price that satisfies the
+        // timestamp constraint.
         (int256 clAnswer, uint256 clTimestamp) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
 
-        // For Chronicle and Pyth, just pull the most recent prices and drop them if they don't satisfy the constraint.
-        (int256 crAnswer, uint256 crTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
-        (int256 pyAnswer, uint256 pyTimestamp) = PythSourceAdapter.getLatestSourceData();
+        // For Chronicle and Pyth, tryLatestDataAt would attempt to get price from snapshots, but we can drop them if
+        // they don't satisfy the timestamp constraint.
+        (int256 crAnswer, uint256 crTimestamp) = ChronicleMedianSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
+        (int256 pyAnswer, uint256 pyTimestamp) = PythSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
 
         // To "drop" Chronicle and Pyth, we set their timestamps to 0 (as old as possible) if they are too recent.
         // This means that they will never be used if either or both are 0.

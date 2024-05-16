@@ -73,6 +73,6 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) public view override returns (int256, uint256) {
         Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
-        return (DecimalLib.convertDecimals(snapshot.answer, SOURCE_DECIMALS, 18), snapshot.timestamp);
+        return (snapshot.answer, snapshot.timestamp);
     }
 }

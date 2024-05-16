@@ -47,7 +47,7 @@ contract UniswapAnchoredViewSourceAdapterTest is CommonTest {
         assertTrue(latestAggregatorTimestamp == latestSourceTimestamp);
     }
 
-    function testCorrectlyStandardizesOutputs() public {
+    function testCorrectlyStandardizesLatestOutputs() public {
         // Repeat the same test as above, but with cWBTC where underlying has 8 decimals.
         address cWBTC = 0xccF4429DB6322D5C611ee964527D42E5d685DD6a;
         sourceAdapter = new TestedSourceAdapter(uniswapAnchoredView, cWBTC);
@@ -62,6 +62,30 @@ contract UniswapAnchoredViewSourceAdapterTest is CommonTest {
         uint256 standardizedAnswer = latestUniswapAnchoredViewAnswer / 10 ** (28 - 18);
         assertTrue(int256(standardizedAnswer) == latestSourceAnswer);
         assertTrue(latestAggregatorTimestamp == latestSourceTimestamp);
+    }
+
+    function testCorrectlyStandardizesLatestAtOutputs() public {
+        // Repeat the same test for cWBTC as above, but for tryLatestDataAt.
+        uint256 targetTime = block.timestamp;
+
+        address cWBTC = 0xccF4429DB6322D5C611ee964527D42E5d685DD6a;
+        sourceAdapter = new TestedSourceAdapter(uniswapAnchoredView, cWBTC);
+        aggregator = IAccessControlledAggregatorV3(address(sourceAdapter.aggregator()));
+
+        // Fork ~24 hours (7200 blocks on mainnet) forward with persistent source adapter.
+        vm.makePersistent(address(sourceAdapter));
+        vm.createSelectFork("mainnet", targetBlock + 7200);
+        _whitelistOnAggregator();
+
+        // UniswapAnchoredView does not support historical lookups so this should still return latest data without snapshotting.
+        uint256 latestUniswapAnchoredViewAnswer = uniswapAnchoredView.getUnderlyingPrice(cWBTC);
+        uint256 latestAggregatorTimestamp = aggregator.latestTimestamp();
+        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 100);
+
+        // WBTC has 8 decimals, so source price feed is scaled at (36 - 8) = 28 decimals.
+        uint256 standardizedAnswer = latestUniswapAnchoredViewAnswer / 10 ** (28 - 18);
+        assertTrue(int256(standardizedAnswer) == lookBackPrice);
+        assertTrue(latestAggregatorTimestamp == lookBackTimestamp);
     }
 
     function testReturnsLatestSourceDataNoSnapshot() public {

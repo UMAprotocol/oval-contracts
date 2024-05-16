@@ -81,12 +81,14 @@ contract UniswapAnchoredViewSourceAdapterTest is CommonTest {
         // UniswapAnchoredView does not support historical lookups so this should still return latest data without snapshotting.
         uint256 latestUniswapAnchoredViewAnswer = uniswapAnchoredView.getUnderlyingPrice(cWBTC);
         uint256 latestAggregatorTimestamp = aggregator.latestTimestamp();
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 100);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) =
+            sourceAdapter.tryLatestDataAt(targetTime, 100);
 
         // WBTC has 8 decimals, so source price feed is scaled at (36 - 8) = 28 decimals.
         uint256 standardizedAnswer = latestUniswapAnchoredViewAnswer / 10 ** (28 - 18);
         assertTrue(int256(standardizedAnswer) == lookBackPrice);
         assertTrue(latestAggregatorTimestamp == lookBackTimestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testReturnsLatestSourceDataNoSnapshot() public {

@@ -19,7 +19,7 @@ abstract contract OSMDestinationAdapter is IOSM, DiamondRootOval {
     function read() public view override returns (bytes32) {
         // MakerDAO performs decimal conversion in collateral adapter contracts, so all oracle prices are expected to
         // have 18 decimals, the same as returned by the internalLatestData().answer.
-        (int256 answer,) = internalLatestData();
+        (int256 answer,,) = internalLatestData();
         return bytes32(uint256(answer));
     }
 
@@ -29,7 +29,7 @@ abstract contract OSMDestinationAdapter is IOSM, DiamondRootOval {
      * @return valid True if the value returned is valid.
      */
     function peek() public view override returns (bytes32, bool) {
-        (int256 answer,) = internalLatestData();
+        (int256 answer,,) = internalLatestData();
         // This might be required for MakerDAO when voiding Oracle sources.
         return (bytes32(uint256(answer)), answer > 0);
     }
@@ -39,7 +39,7 @@ abstract contract OSMDestinationAdapter is IOSM, DiamondRootOval {
      * @return timestamp The timestamp of the most recent update.
      */
     function zzz() public view override returns (uint64) {
-        (, uint256 timestamp) = internalLatestData();
+        (, uint256 timestamp,) = internalLatestData();
         return uint64(timestamp);
     }
 }

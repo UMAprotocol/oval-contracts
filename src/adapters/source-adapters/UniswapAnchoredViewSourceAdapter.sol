@@ -89,6 +89,6 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
         returns (int256, uint256, uint256)
     {
         Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
-        return (DecimalLib.convertDecimals(snapshot.answer, SOURCE_DECIMALS, 18), snapshot.timestamp, 1);
+        return (snapshot.answer, snapshot.timestamp, 1);
     }
 }

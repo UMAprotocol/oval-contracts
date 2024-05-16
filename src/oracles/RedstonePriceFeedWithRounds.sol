@@ -5,8 +5,6 @@ import "redstone-oracles-monorepo/packages/on-chain-relayer/contracts/price-feed
 contract RedstonePriceFeedWithRounds is MergedPriceFeedAdapterWithRounds {
     bytes32 private immutable dataFeedId;
 
-    error SignerNotAuthorised(address signer);
-
     constructor(bytes32 _dataFeedId) {
         dataFeedId = _dataFeedId;
     }

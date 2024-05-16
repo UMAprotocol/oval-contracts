@@ -16,7 +16,6 @@ import {TestedSourceAdapter} from "../fork/adapters/ChainlinkSourceAdapter.sol";
 
 contract MockRedstonePayload is CommonTest {
     function getRedstonePayload(
-        // dataFeedId:value:decimals
         string memory priceFeed
     ) public returns (bytes memory) {
         string[] memory args = new string[](4);
@@ -64,6 +63,7 @@ contract RedstoneOracleAdapterTest is CommonTest, MockRedstonePayload {
     }
 
     function testPushPrice() public {
+        vm.warp(1234);
         uint256 updatePrice = pushPrice();
         (
             uint80 roundId,
@@ -75,8 +75,8 @@ contract RedstoneOracleAdapterTest is CommonTest, MockRedstonePayload {
 
         assertEq(roundId, 1);
         assertEq(uint256(answer), updatePrice);
-        // assertEq(startedAt, timestampMilliseconds);
-        // assertEq(updatedAt, timestampMilliseconds);
+        assertEq(startedAt, 1234);
+        assertEq(updatedAt, 1234);
         assertEq(answeredInRound, 1);
     }
 

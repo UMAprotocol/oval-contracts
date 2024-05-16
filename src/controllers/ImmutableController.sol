@@ -10,7 +10,6 @@ import {Oval} from "../Oval.sol";
  * 2. Because LOCK_WINDOW and MAX_TRAVERSAL are immutable, the read costs are much lower in the "hot" path (end
  *    oracle users).
  */
-
 abstract contract ImmutableController is Oval {
     uint256 private immutable LOCK_WINDOW; // The lockWindow in seconds.
     uint256 private immutable MAX_TRAVERSAL; // The maximum number of rounds to traverse when looking for historical data.

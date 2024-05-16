@@ -6,7 +6,6 @@ import {DiamondRootOval} from "../../DiamondRootOval.sol";
 /**
  * @title SnapshotSource contract to be used in conjunction with a source adapter that needs to snapshot historic data.
  */
-
 abstract contract SnapshotSource is DiamondRootOval {
     // Snapshot records the historical answer at a specific timestamp.
     struct Snapshot {

@@ -11,7 +11,6 @@ import {IValidatorProxy} from "../../interfaces/compound/IValidatorProxy.sol";
  * @title UniswapAnchoredViewSourceAdapter contract to read data from UniswapAnchoredView and standardize it for Oval.
  *
  */
-
 abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
     IUniswapAnchoredView public immutable UNISWAP_ANCHORED_VIEW;
     address public immutable C_TOKEN;

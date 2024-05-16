@@ -3,4 +3,4 @@ forge-std/=lib/forge-std/src/
 redstone-oracles-monorepo/=lib/RedStoneBaseContracts/redstone-oracles-monorepo
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
-
+@redstone-finance/=lib/RedStoneBaseContracts/@redstone-finance/

@@ -18,13 +18,13 @@ contract RedstonePriceFeedWithRounds is MergedPriceFeedAdapterWithRounds {
     }
 
     function getUniqueSignersThreshold() public pure override returns (uint8) {
-        return 1;
+        return 3;
     }
 
     function getAuthorisedSignerIndex(
         address signerAddress
     ) public view virtual override returns (uint8) {
-        if (signerAddress == 0x71d00abE308806A3bF66cE05CF205186B0059503) {
+        if (signerAddress == 0x8BB8F32Df04c8b654987DAaeD53D6B6091e3B774) {
             return 0;
         } else if (
             signerAddress == 0xdEB22f54738d54976C4c0fe5ce6d408E40d88499

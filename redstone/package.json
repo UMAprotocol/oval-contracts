@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@redstone-finance/protocol": "^0.5.1",
+    "@redstone-finance/sdk": "^0.5.1",
     "web3": "^4.8.0"
   }
 }

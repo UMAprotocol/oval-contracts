@@ -77,7 +77,7 @@ jobs:
       - name: "Run the tests"
         env:
           RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
-        run: "forge test --fork-url $RPC_MAINNET"
+        run: "forge test --fork-url $RPC_MAINNET --ffi"
 
       - name: "Add test summary"
         run: |

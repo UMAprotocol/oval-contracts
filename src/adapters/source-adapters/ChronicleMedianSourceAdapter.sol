@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
-import {SnapshotSource} from "./SnapshotSource.sol";
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
+import {SnapshotSourceLib} from "../lib/SnapshotSourceLib.sol";
 import {IMedian} from "../../interfaces/chronicle/IMedian.sol";
 import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol";
 
 /**
  * @title ChronicleMedianSourceAdapter contract to read data from Chronicle and standardize it for Oval.
  */
-abstract contract ChronicleMedianSourceAdapter is SnapshotSource {
+abstract contract ChronicleMedianSourceAdapter is DiamondRootOval {
     IMedian public immutable CHRONICLE_SOURCE;
+
+    SnapshotSourceLib.Snapshot[] public chronicleMedianSnapshots; // Historical answer and timestamp snapshots.
 
     event SourceSet(address indexed sourceOracle);
 
@@ -17,6 +20,14 @@ abstract contract ChronicleMedianSourceAdapter is SnapshotSource {
         CHRONICLE_SOURCE = _chronicleSource;
 
         emit SourceSet(address(_chronicleSource));
+    }
+
+    /**
+     * @notice Snapshot the current source data.
+     */
+    function snapshotData() public virtual override {
+        (int256 latestAnswer, uint256 latestTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.snapshotData(chronicleMedianSnapshots, latestAnswer, latestTimestamp);
     }
 
     /**
@@ -33,7 +44,7 @@ abstract contract ChronicleMedianSourceAdapter is SnapshotSource {
     /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
-     * @dev Chronicle does not support historical lookups so this uses SnapshotSource to get historic data.
+     * @dev Chronicle does not support historical lookups so this uses SnapshotSourceLib to get historic data.
      * @param timestamp The timestamp to try getting latest data at.
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
@@ -46,7 +57,10 @@ abstract contract ChronicleMedianSourceAdapter is SnapshotSource {
         override
         returns (int256, uint256)
     {
-        Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
+        (int256 latestAnswer, uint256 latestTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            chronicleMedianSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal
+        );
         return (snapshot.answer, snapshot.timestamp);
     }
 }

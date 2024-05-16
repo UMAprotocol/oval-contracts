@@ -9,7 +9,6 @@ import {IPyth} from "../../interfaces/pyth/IPyth.sol";
 import {ChainlinkSourceAdapter} from "./ChainlinkSourceAdapter.sol";
 import {ChronicleMedianSourceAdapter} from "./ChronicleMedianSourceAdapter.sol";
 import {PythSourceAdapter} from "./PythSourceAdapter.sol";
-import {SnapshotSource} from "./SnapshotSource.sol";
 
 /**
  * @title BoundedUnionSourceAdapter contract to read data from multiple sources and return the newest, contingent on it
@@ -58,7 +57,7 @@ abstract contract BoundedUnionSourceAdapter is
     /**
      * @notice Snapshots is a no-op for this adapter as its never used.
      */
-    function snapshotData() public override(ChainlinkSourceAdapter, SnapshotSource) {}
+    function snapshotData() public override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter) {}
 
     /**
      * @notice Tries getting latest data as of requested timestamp. Note that for all historic lookups we simply return

@@ -2,25 +2,27 @@
 pragma solidity 0.8.17;
 
 import {DecimalLib} from "../lib/DecimalLib.sol";
-import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
+import {IAggregatorV3SourceCoinbase} from "../../interfaces/coinbase/IAggregatorV3SourceCoinbase.sol";
 import {DiamondRootOval} from "../../DiamondRootOval.sol";
 
 /**
- * @title CoinbaseOracleSourceAdapter
+ * @title CoinbaseSourceAdapter
  * @notice A contract to read data from CoinbaseOracle and standardize it for Oval.
  * @dev Can fetch information from CoinbaseOracle source at a desired timestamp for historic lookups.
  */
-abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
-    IAggregatorV3Source public immutable COINBASE_SOURCE;
+abstract contract CoinbaseSourceAdapter is DiamondRootOval {
+    IAggregatorV3SourceCoinbase public immutable COINBASE_SOURCE;
     uint8 private immutable SOURCE_DECIMALS;
+    string public TICKER;
 
-    event SourceSet(address indexed sourceOracle, uint8 indexed sourceDecimals);
+    event SourceSet(address indexed sourceOracle, uint8 indexed sourceDecimals, string ticker);
 
-    constructor(IAggregatorV3Source source) {
-        COINBASE_SOURCE = source;
-        SOURCE_DECIMALS = source.decimals();
+    constructor(IAggregatorV3SourceCoinbase _source, string memory _ticker) {
+        COINBASE_SOURCE = _source;
+        SOURCE_DECIMALS = _source.decimals();
+        TICKER = _ticker;
 
-        emit SourceSet(address(source), SOURCE_DECIMALS);
+        emit SourceSet(address(_source), SOURCE_DECIMALS, TICKER);
     }
 
     /**
@@ -53,14 +55,14 @@ abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
      * @return updatedAt The timestamp of the answer.
      */
     function getLatestSourceData() public view virtual override returns (int256, uint256) {
-        (, int256 sourceAnswer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData();
+        (, int256 sourceAnswer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData(TICKER);
         return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
     }
 
     // Tries getting the latest data as of the requested timestamp. If this is not possible,
     // returns the earliest data available past the requested timestamp considering the maxTraversal limitations.
     function _tryLatestRoundDataAt(uint256 timestamp, uint256 maxTraversal) internal view returns (int256, uint256) {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData();
+        (uint80 roundId, int256 answer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData(TICKER);
 
         // If the latest update is older than or equal to the requested timestamp, return the latest data.
         if (updatedAt <= timestamp) {
@@ -88,7 +90,7 @@ abstract contract CoinbaseOracleSourceAdapter is DiamondRootOval {
         int256 answer;
         uint256 updatedAt;
         for (uint80 i = 1; i <= maxTraversal && latestRoundId >= i; i++) {
-            (, answer,, updatedAt,) = COINBASE_SOURCE.getRoundData(latestRoundId - i);
+            (, answer,, updatedAt,) = COINBASE_SOURCE.getRoundData(TICKER, latestRoundId - i);
             if (updatedAt <= timestamp) {
                 return (answer, updatedAt);
             }

@@ -87,7 +87,6 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
         ) = abi.decode(priceData, (string, uint256, string, uint256));
 
         require(keccak256(abi.encodePacked(kind)) == keccak256(abi.encodePacked("price")), "Invalid kind.");
-        require(price < uint256(type(int256).max), "Price exceeds max value.");
 
         PriceData storage priceDataStruct = prices[ticker];
         uint256 latestTimestamp = priceDataStruct.roundTimestamps[priceDataStruct.lastRoundId];

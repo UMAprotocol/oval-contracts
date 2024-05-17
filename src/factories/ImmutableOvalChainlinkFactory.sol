@@ -6,28 +6,37 @@ import {ChainlinkSourceAdapter} from "../adapters/source-adapters/ChainlinkSourc
 import {ChainlinkDestinationAdapter} from "../adapters/destination-adapters/ChainlinkDestinationAdapter.sol";
 import {IAggregatorV3Source} from "../interfaces/chainlink/IAggregatorV3Source.sol";
 
+/**
+ * @title OvalChainlinkImmutable, providing an immutable controller for Oval wapped Chainlink.
+ */
 contract OvalChainlinkImmutable is ImmutableController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
-    constructor(
-        IAggregatorV3Source source,
-        address[] memory unlockers,
-        uint256 _lockWindow,
-        uint256 _maxTraversal,
-        address owner
-    )
+    constructor(IAggregatorV3Source source, address[] memory unlockers, uint256 _lockWindow, uint256 _maxTraversal)
         ChainlinkSourceAdapter(source)
         ImmutableController(_lockWindow, _maxTraversal, unlockers)
         ChainlinkDestinationAdapter(source.decimals())
     {}
 }
 
-contract MutableUnlockersOvalChainlinkFactory {
+/**
+ * @title ImmutableUnlockersOvalChainlinkFactory
+ * @dev Factory contract to create instances of OvalChainlinkImmutable. If Oval instances are deployed from this factory
+ * then downstream contracts can be sure the inheretence structure is defined correctly.
+ */
+contract ImmutableUnlockersOvalChainlinkFactory {
+    /**
+     * @dev Creates an instance of OvalChainlinkImmutable.
+     * @param source The Chainlink source aggregator. This is the address of the contract to be wrapped by Oval.
+     * @param lockWindow The time window during which the unlockers can operate.
+     * @param maxTraversal The maximum number of historical data points to traverse.
+     * @param unlockers Array of addresses that can unlock the controller.
+     * @return The address of the newly created OvalChainlinkImmutable instance.
+     */
     function createImmutableOvalChainlink(
         IAggregatorV3Source source,
         uint256 lockWindow,
         uint256 maxTraversal,
-        address owner,
         address[] memory unlockers
     ) external returns (address) {
-        return address(new OvalChainlinkImmutable(source, unlockers, lockWindow, maxTraversal, owner));
+        return address(new OvalChainlinkImmutable(source, unlockers, lockWindow, maxTraversal));
     }
 }

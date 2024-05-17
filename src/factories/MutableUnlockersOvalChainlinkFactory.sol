@@ -6,6 +6,9 @@ import {ChainlinkSourceAdapter} from "../adapters/source-adapters/ChainlinkSourc
 import {ChainlinkDestinationAdapter} from "../adapters/destination-adapters/ChainlinkDestinationAdapter.sol";
 import {IAggregatorV3Source} from "../interfaces/chainlink/IAggregatorV3Source.sol";
 
+/**
+ * @title OvalChainlinkMutableUnlocker, providing a mutable-unlocker controller for Oval wapped Chainlink.
+ */
 contract OvalChainlinkMutableUnlocker is
     MutableUnlockersController,
     ChainlinkSourceAdapter,
@@ -26,7 +29,21 @@ contract OvalChainlinkMutableUnlocker is
     }
 }
 
+/**
+ * @title MutableUnlockersOvalChainlinkFactory
+ * @dev Factory contract to create instances of OvalChainlinkMutableUnlocker. If Oval instances are deployed from this
+ * factory then downstream contracts can be sure the inheretence structure is defined correctly.
+ */
 contract MutableUnlockersOvalChainlinkFactory {
+    /**
+     * @dev Creates an instance of OvalChainlinkMutableUnlocker.
+     * @param source The Chainlink source aggregator. This is the address of the contract to be wrapped by Oval.
+     * @param lockWindow The time window during which the unlockers can operate.
+     * @param maxTraversal The maximum number of historical data points to traverse.
+     * @param owner The address that will own the created OvalChainlinkMutableUnlocker instance.
+     * @param unlockers Array of addresses that can unlock the controller.
+     * @return The address of the newly created OvalChainlinkMutableUnlocker instance.
+     */
     function createMutableUnlockerOvalChainlink(
         IAggregatorV3Source source,
         uint256 lockWindow,

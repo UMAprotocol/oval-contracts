@@ -1,30 +1,32 @@
-import {StandardChainlinkFactory} from "../../src/factories/StandardChainlinkFactory.sol";
-import {StandardOvalChainlink} from "../../src/factories/StandardChainlinkFactory.sol";
-import {IAggregatorV3Source} from "../../src/interfaces/chainlink/IAggregatorV3Source.sol";
-import {MockChainlinkV3Aggregator} from "../mocks/MockChainlinkV3Aggregator.sol";
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.8.17;
+
+import {StandardPythFactory} from "../../src/factories/StandardPythFactory.sol";
+import {OvalPyth} from "../../src/factories/StandardPythFactory.sol";
+import {IPyth} from "../../src/interfaces/pyth/IPyth.sol";
 import {CommonTest} from "../Common.sol";
 
-contract StandardChainlinkFactoryTest is CommonTest {
-    StandardChainlinkFactory factory;
-    MockChainlinkV3Aggregator mockSource;
+contract StandardPythFactoryTest is CommonTest {
+    StandardPythFactory factory;
+    IPyth mockSource;
     address[] unlockers;
     uint256 lockWindow = 300;
     uint256 maxTraversal = 15;
 
     function setUp() public {
-        mockSource = new MockChainlinkV3Aggregator(8, 420);
+        mockSource = IPyth(address(0x456));
         unlockers.push(address(0x123));
-        factory = new StandardChainlinkFactory(maxTraversal, unlockers);
+        factory = new StandardPythFactory(mockSource, maxTraversal, unlockers);
     }
 
-    function testCreateMutableUnlockerOvalChainlink() public {
+    function testCreateMutableUnlockerOvalPyth() public {
         address created = factory.create(
-            IAggregatorV3Source(address(mockSource)), lockWindow
+            bytes32(uint256(0x789)), lockWindow
         );
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
-        StandardOvalChainlink instance = StandardOvalChainlink(created);
+        OvalPyth instance = OvalPyth(created);
         assertTrue(instance.lockWindow() == lockWindow);
         assertTrue(instance.maxTraversal() == maxTraversal);
 
@@ -37,9 +39,9 @@ contract StandardChainlinkFactoryTest is CommonTest {
 
     function testOwnerCanChangeUnlockers() public {
         address created = factory.create(
-            IAggregatorV3Source(address(mockSource)), lockWindow
+            bytes32(uint256(0x789)), lockWindow
         );
-        StandardOvalChainlink instance = StandardOvalChainlink(created);
+        OvalPyth instance = OvalPyth(created);
 
         address newUnlocker = address(0x789);
         instance.setUnlocker(newUnlocker, true); // Correct method to add unlockers

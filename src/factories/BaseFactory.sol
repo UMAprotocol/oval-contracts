@@ -14,6 +14,7 @@ contract BaseFactory is Ownable {
     address[] public defaultUnlockers;
 
     event DefaultUnlockersSet(address[] defaultUnlockers);
+    event OvalDeployed(address indexed deployer, address indexed oval, uint256 indexed lockWindow, uint256 maxTraversal, address owner, address[] unlockers);
 
     constructor(uint256 maxTraversal, address[] memory _defaultUnlockers) {
         MAX_TRAVERSAL = maxTraversal;

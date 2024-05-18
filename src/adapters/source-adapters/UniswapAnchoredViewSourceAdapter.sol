@@ -11,7 +11,6 @@ import {IValidatorProxy} from "../../interfaces/compound/IValidatorProxy.sol";
  * @title UniswapAnchoredViewSourceAdapter contract to read data from UniswapAnchoredView and standardize it for Oval.
  *
  */
-
 abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
     IUniswapAnchoredView public immutable UNISWAP_ANCHORED_VIEW;
     address public immutable C_TOKEN;
@@ -74,6 +73,6 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) public view override returns (int256, uint256) {
         Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
-        return (DecimalLib.convertDecimals(snapshot.answer, SOURCE_DECIMALS, 18), snapshot.timestamp);
+        return (snapshot.answer, snapshot.timestamp);
     }
 }

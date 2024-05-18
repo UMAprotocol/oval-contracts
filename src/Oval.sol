@@ -15,7 +15,6 @@ import {DiamondRootOval} from "./DiamondRootOval.sol";
  * contract that governs who can call unlockLatestValue.
  * @custom:security-contact bugs@umaproject.org
  */
-
 abstract contract Oval is DiamondRootOval {
     uint256 public lastUnlockTime; // Timestamp of the latest unlock to Oval.
 

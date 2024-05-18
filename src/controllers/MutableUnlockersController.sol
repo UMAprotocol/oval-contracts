@@ -7,7 +7,6 @@ import {Oval} from "../Oval.sol";
 /**
  * @title MutableUnlockersController is a controller that only allows unlockers to be change, but other params are immutable.
  */
-
 abstract contract MutableUnlockersController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private immutable LOCK_WINDOW; // The lockWindow in seconds.

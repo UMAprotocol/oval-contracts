@@ -1,11 +1,11 @@
-import {MutableUnlockersOvalChainlinkFactory} from "../../src/factories/MutableUnlockersOvalChainlinkFactory.sol";
-import {OvalChainlinkMutableUnlocker} from "../../src/factories/MutableUnlockersOvalChainlinkFactory.sol";
+import {StandardChainlinkFactory} from "../../src/factories/StandardChainlinkFactory.sol";
+import {StandardOvalChainlink} from "../../src/factories/StandardChainlinkFactory.sol";
 import {IAggregatorV3Source} from "../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 import {MockChainlinkV3Aggregator} from "../mocks/MockChainlinkV3Aggregator.sol";
 import {CommonTest} from "../Common.sol";
 
-contract MutableUnlockersOvalChainlinkFactoryTest is CommonTest {
-    MutableUnlockersOvalChainlinkFactory factory;
+contract StandardChainlinkFactoryTest is CommonTest {
+    StandardChainlinkFactory factory;
     MockChainlinkV3Aggregator mockSource;
     address[] unlockers;
     uint256 lockWindow = 300;
@@ -14,18 +14,17 @@ contract MutableUnlockersOvalChainlinkFactoryTest is CommonTest {
     function setUp() public {
         mockSource = new MockChainlinkV3Aggregator(8, 420);
         unlockers.push(address(0x123));
-        factory = new MutableUnlockersOvalChainlinkFactory();
+        factory = new StandardChainlinkFactory(maxTraversal, unlockers);
     }
 
     function testCreateMutableUnlockerOvalChainlink() public {
-        address owner = address(this);
-        address created = factory.createMutableUnlockerOvalChainlink(
-            IAggregatorV3Source(address(mockSource)), lockWindow, maxTraversal, owner, unlockers
+        address created = factory.create(
+            IAggregatorV3Source(address(mockSource)), lockWindow
         );
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
-        OvalChainlinkMutableUnlocker instance = OvalChainlinkMutableUnlocker(created);
+        StandardOvalChainlink instance = StandardOvalChainlink(created);
         assertTrue(instance.lockWindow() == lockWindow);
         assertTrue(instance.maxTraversal() == maxTraversal);
 
@@ -37,11 +36,10 @@ contract MutableUnlockersOvalChainlinkFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address owner = address(this);
-        address created = factory.createMutableUnlockerOvalChainlink(
-            IAggregatorV3Source(address(mockSource)), lockWindow, maxTraversal, owner, unlockers
+        address created = factory.create(
+            IAggregatorV3Source(address(mockSource)), lockWindow
         );
-        OvalChainlinkMutableUnlocker instance = OvalChainlinkMutableUnlocker(created);
+        StandardOvalChainlink instance = StandardOvalChainlink(created);
 
         address newUnlocker = address(0x789);
         instance.setUnlocker(newUnlocker, true); // Correct method to add unlockers

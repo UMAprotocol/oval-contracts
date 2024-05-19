@@ -16,7 +16,7 @@ contract PermissionProxy is Ownable, Multicall {
 
     event SenderSet(address sender, bool allowed);
 
-    mapping (address => bool) senders;
+    mapping (address => bool) public senders;
 
     /**
      * @notice Enables or disables a sender.

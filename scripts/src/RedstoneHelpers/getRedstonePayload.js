@@ -1,6 +1,6 @@
 const { appendFileSync } = require("fs");
 const { RedstonePayload } = require("@redstone-finance/protocol");
-const web3 = require("web3");
+const ethers = require("ethers");
 const sdk = require("@redstone-finance/sdk");
 const args = process.argv.slice(2);
 
@@ -11,9 +11,9 @@ const exit = (code, message) => {
 };
 
 const parsePrice = (value) => {
-  const hexString = web3.utils.bytesToHex(value);
-  const bigNumberPrice = BigInt(hexString);
-  return Number(bigNumberPrice);
+  const hexString = ethers.utils.hexlify(value);
+  const bigNumberPrice = ethers.BigNumber.from(hexString);
+  return bigNumberPrice.toNumber();
 };
 
 const pickMedian = (arr) => {
@@ -54,7 +54,7 @@ const main = async () => {
   const timestampMS =
     getLatestSignedPrice[dataFeed][0].dataPackage.timestampMilliseconds;
 
-  const encodedData = web3.eth.abi.encodeParameters(
+  const encodedData = ethers.utils.defaultAbiCoder.encode(
     ["bytes", "uint256", "uint256"],
     ["0x" + payload, timestampMS, medianPrice]
   );

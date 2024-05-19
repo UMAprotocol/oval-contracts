@@ -45,26 +45,26 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         uint256 targetTime = block.timestamp - 1 hours;
         (uint80 latestRound,,,,) = chainlink.latestRoundData();
         (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
-        (, int256 answer, uint256 startedAt,,) = chainlink.getRoundData(latestRound - 1);
-        assertTrue(startedAt <= targetTime); // The time from the chainlink source is at least 1 hours old.
+        (, int256 answer,, uint256 updatedAt,) = chainlink.getRoundData(latestRound - 1);
+        assertTrue(updatedAt <= targetTime); // The time from the chainlink source is at least 1 hours old.
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
-        assertTrue(startedAt == lookBackTimestamp);
+        assertTrue(updatedAt == lookBackTimestamp);
 
         // Next, try looking back 2 hours. Equally, we should get the price from 2 rounds ago.
         targetTime = block.timestamp - 2 hours;
         (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
-        (, answer, startedAt,,) = chainlink.getRoundData(latestRound - 2);
-        assertTrue(startedAt <= targetTime); // The time from the chainlink source is at least 2 hours old.
+        (, answer,, updatedAt,) = chainlink.getRoundData(latestRound - 2);
+        assertTrue(updatedAt <= targetTime); // The time from the chainlink source is at least 2 hours old.
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
-        assertTrue(startedAt == lookBackTimestamp);
+        assertTrue(updatedAt == lookBackTimestamp);
 
         // Now, try 3 hours old. again, The value should be at least 3 hours old. However, for this lookback the chainlink
         // souce was updated 2x in the interval. Therefore, we should get the price from 4 rounds ago.
         targetTime = block.timestamp - 3 hours;
         (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
-        (, answer, startedAt,,) = chainlink.getRoundData(latestRound - 4);
-        assertTrue(startedAt <= block.timestamp - 3 hours); // The time from the chainlink source is at least 3 hours old.
-        assertTrue(startedAt > block.timestamp - 4 hours); // Time from chainlink source is at not more than 4 hours.
+        (, answer,, updatedAt,) = chainlink.getRoundData(latestRound - 4);
+        assertTrue(updatedAt <= block.timestamp - 3 hours); // The time from the chainlink source is at least 3 hours old.
+        assertTrue(updatedAt > block.timestamp - 4 hours); // Time from chainlink source is at not more than 4 hours.
     }
 
     function testCorrectlyBoundsMaxLookBack() public {
@@ -74,19 +74,19 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         uint256 targetTime = block.timestamp - 2 hours;
         (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         (uint80 latestRound,,,,) = chainlink.latestRoundData();
-        (, int256 answer, uint256 startedAt,,) = chainlink.getRoundData(latestRound - 2);
+        (, int256 answer,, uint256 updatedAt,) = chainlink.getRoundData(latestRound - 2);
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
-        assertTrue(startedAt == lookBackTimestamp);
+        assertTrue(updatedAt == lookBackTimestamp);
 
         // Now, lookback longer than 2 hours. should get the same value as before.
         targetTime = block.timestamp - 3 hours;
         (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
-        assertTrue(startedAt == lookBackTimestamp);
+        assertTrue(updatedAt == lookBackTimestamp);
         targetTime = block.timestamp - 10 hours;
         (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
-        assertTrue(startedAt == lookBackTimestamp);
+        assertTrue(updatedAt == lookBackTimestamp);
     }
 
     function testNonHistoricalData() public {

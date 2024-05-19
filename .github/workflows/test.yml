@@ -71,11 +71,6 @@ jobs:
         with:
           version: "nightly-de33b6af53005037b463318d2628b5cfcaf39916"
 
-      - name: "Navigate to redstone and install dependencies"
-        run: |
-          cd redstone
-          yarn install
-
       - name: "Show the Foundry config"
         run: "forge config"
 

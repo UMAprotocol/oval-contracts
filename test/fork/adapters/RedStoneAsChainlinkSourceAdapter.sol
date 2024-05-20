@@ -68,8 +68,9 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         uint256 targetTime = block.timestamp - 1 hours;
         (uint80 latestRound,,,,) = redstone.latestRoundData();
 
-        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 roundId) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, int256 answer,, uint256 updatedAt,) = redstone.getRoundData(latestRound);
+        assertTrue(roundId == latestRound);
         assertTrue(updatedAt <= targetTime);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
         assertTrue(updatedAt == lookBackTimestamp);

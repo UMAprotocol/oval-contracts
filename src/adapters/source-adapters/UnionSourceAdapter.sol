@@ -43,6 +43,22 @@ abstract contract UnionSourceAdapter is ChainlinkSourceAdapter, ChronicleMedianS
     }
 
     /**
+     * @notice Returns the requested round data from the source.
+     * @dev Not all aggregated adapters support this, so this returns uninitialized data.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function getSourceDataAtRound(uint256 /* roundId */ )
+        public
+        view
+        virtual
+        override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
+        returns (int256, uint256)
+    {
+        return (0, 0);
+    }
+
+    /**
      * @notice Snapshots data from all sources that require it.
      */
     function snapshotData() public override(ChainlinkSourceAdapter, SnapshotSource) {
@@ -56,15 +72,16 @@ abstract contract UnionSourceAdapter is ChainlinkSourceAdapter, ChronicleMedianS
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer (hardcoded to 1 as not all aggregated adapters support it).
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
         view
         override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         // Chainlink has price history, so just use tryLatestDataAt to pull the most recent price that satisfies the timestamp constraint.
-        (int256 clAnswer, uint256 clTimestamp) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
+        (int256 clAnswer, uint256 clTimestamp,) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
 
         // For Chronicle and Pyth, just pull the most recent prices and drop them if they don't satisfy the constraint.
         (int256 crAnswer, uint256 crTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
@@ -77,8 +94,8 @@ abstract contract UnionSourceAdapter is ChainlinkSourceAdapter, ChronicleMedianS
 
         // This if/else block matches the one in getLatestSourceData, since it is now just looking for the most recent
         // timestamp, as all prices that violate the input constraint have had their timestamps set to 0.
-        if (clTimestamp >= crTimestamp && clTimestamp >= pyTimestamp) return (clAnswer, clTimestamp);
-        else if (crTimestamp >= pyTimestamp) return (crAnswer, crTimestamp);
-        else return (pyAnswer, pyTimestamp);
+        if (clTimestamp >= crTimestamp && clTimestamp >= pyTimestamp) return (clAnswer, clTimestamp, 1);
+        else if (crTimestamp >= pyTimestamp) return (crAnswer, crTimestamp, 1);
+        else return (pyAnswer, pyTimestamp, 1);
     }
 }

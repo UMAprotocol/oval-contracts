@@ -51,7 +51,7 @@ contract PythDestinationAdapter is Ownable, IPyth {
         if (address(idToOval[id]) == address(0)) {
             return basePythProvider.getPriceUnsafe(id);
         }
-        (int256 answer, uint256 timestamp) = idToOval[id].internalLatestData();
+        (int256 answer, uint256 timestamp,) = idToOval[id].internalLatestData();
         return Price({
             price: SafeCast.toInt64(DecimalLib.convertDecimals(answer, 18, idToDecimal[id])),
             conf: 0,

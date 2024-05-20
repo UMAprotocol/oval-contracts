@@ -13,7 +13,9 @@ contract TestedSourceAdapter is UnionSourceAdapter {
         UnionSourceAdapter(chainlink, chronicle, pyth, pythPriceId)
     {}
 
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
+
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
 
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
@@ -129,10 +131,11 @@ contract UnionSourceAdapterTest is CommonTest {
         assertTrue(latest.pyth.timestamp == historic.pyth.timestamp);
 
         // As no sources had updated we still expect historic union to match chainlink.
-        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp) =
+        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp, uint256 lookBackRoundId) =
             sourceAdapter.tryLatestDataAt(targetTimestamp, 10);
         assertTrue(lookbackUnionAnswer == historic.chainlink.answer);
         assertTrue(lookbackUnionTimestamp == historic.chainlink.timestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testLookbackChronicle() public {
@@ -160,10 +163,11 @@ contract UnionSourceAdapterTest is CommonTest {
         assertTrue(latest.pyth.timestamp == historic.pyth.timestamp);
 
         // As no sources had updated we still expect historic union to match chronicle.
-        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp) =
+        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp, uint256 lookBackRoundId) =
             sourceAdapter.tryLatestDataAt(targetTimestamp, 10);
         assertTrue(lookbackUnionAnswer == historic.chronicle.answer);
         assertTrue(lookbackUnionTimestamp == historic.chronicle.timestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testLookbackDropChronicle() public {
@@ -190,10 +194,11 @@ contract UnionSourceAdapterTest is CommonTest {
 
         // We cannot lookback to the historic timestamp as chronicle does not support historical lookups.
         // So we expect union lookback to fallback to chainlink.
-        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp) =
+        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp, uint256 lookBackRoundId) =
             sourceAdapter.tryLatestDataAt(targetTimestamp, 100);
         assertTrue(lookbackUnionAnswer == historic.chainlink.answer);
         assertTrue(lookbackUnionTimestamp == historic.chainlink.timestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testLookbackPyth() public {
@@ -221,10 +226,11 @@ contract UnionSourceAdapterTest is CommonTest {
         assertTrue(latest.pyth.timestamp == historic.pyth.timestamp);
 
         // As no sources had updated we still expect historic union to match pyth.
-        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp) =
+        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp, uint256 lookBackRoundId) =
             sourceAdapter.tryLatestDataAt(targetTimestamp, 10);
         assertTrue(lookbackUnionAnswer == historic.pyth.answer);
         assertTrue(lookbackUnionTimestamp == historic.pyth.timestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testLookbackDropPyth() public {
@@ -251,10 +257,11 @@ contract UnionSourceAdapterTest is CommonTest {
 
         // We cannot lookback to the historic timestamp as pyth does not support historical lookups.
         // So we expect union lookback to fallback to chainlink.
-        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp) =
+        (int256 lookbackUnionAnswer, uint256 lookbackUnionTimestamp, uint256 lookBackRoundId) =
             sourceAdapter.tryLatestDataAt(targetTimestamp, 100);
         assertTrue(lookbackUnionAnswer == historic.chainlink.answer);
         assertTrue(lookbackUnionTimestamp == historic.chainlink.timestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function _convertDecimalsWithExponent(int256 answer, int32 expo) internal pure returns (int256) {

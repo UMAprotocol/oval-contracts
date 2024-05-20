@@ -12,7 +12,7 @@ import {ChainlinkSourceAdapter} from "../../../src/adapters/source-adapters/Chai
 
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 import {MergedPriceFeedAdapterWithRounds} from
-    "redstone-oracles-monorepo/packages/on-chain-relayer/contracts/price-feeds/with-rounds/MergedPriceFeedAdapterWithRounds.sol";
+    "redstone-oracle/on-chain-relayer/contracts/price-feeds/with-rounds/MergedPriceFeedAdapterWithRounds.sol";
 
 contract TestedSourceAdapter is ChainlinkSourceAdapter {
     constructor(IAggregatorV3Source source) ChainlinkSourceAdapter(source) {}

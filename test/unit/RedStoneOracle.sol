@@ -10,7 +10,7 @@ import {BaseController} from "../../src/controllers/BaseController.sol";
 import {ChainlinkSourceAdapter} from "../../src/adapters/source-adapters/ChainlinkSourceAdapter.sol";
 import {DecimalLib} from "../../src/adapters/lib/DecimalLib.sol";
 import {IAggregatorV3Source} from "../../src/interfaces/chainlink/IAggregatorV3Source.sol";
-import {RedstonePriceFeedWithRounds} from "redstone-oracles-monorepo/packages/examples/RedstonePriceFeedWithRounds.sol";
+import {RedstonePriceFeedWithRounds} from "redstone-oracle/examples/RedstonePriceFeedWithRounds.sol";
 
 import {IAggregatorV3Source} from "../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 

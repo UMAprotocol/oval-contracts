@@ -7,6 +7,3 @@
 [submodule "lib/redstone-contracts"]
 	path = lib/redstone-contracts
 	url = https://github.com/UMAprotocol/redstone-contracts
-[submodule "lib/redstone-contracts.git"]
-	path = lib/redstone-contracts.git
-	url = https://github.com/UMAprotocol/redstone-contracts.git

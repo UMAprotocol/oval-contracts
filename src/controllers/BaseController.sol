@@ -45,12 +45,12 @@ abstract contract BaseController is Ownable, Oval {
      * @param newLockWindow The lockWindow to set.
      */
     function setLockWindow(uint256 newLockWindow) public onlyOwner {
-        (int256 currentAnswer, uint256 currentTimestamp) = internalLatestData();
+        (int256 currentAnswer, uint256 currentTimestamp,) = internalLatestData();
 
         lockWindow_ = newLockWindow;
 
         // Compare Oval results so that change in lock window does not change returned data.
-        (int256 newAnswer, uint256 newTimestamp) = internalLatestData();
+        (int256 newAnswer, uint256 newTimestamp,) = internalLatestData();
         require(currentAnswer == newAnswer && currentTimestamp == newTimestamp, "Must unlock first");
 
         emit LockWindowSet(newLockWindow);

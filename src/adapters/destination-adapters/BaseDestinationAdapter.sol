@@ -16,7 +16,7 @@ abstract contract BaseDestinationAdapter is DiamondRootOval {
      * @return answer The latest answer in 18 decimals.
      */
     function latestAnswer() public view returns (int256) {
-        (int256 answer,) = internalLatestData();
+        (int256 answer,,) = internalLatestData();
         return answer;
     }
 
@@ -25,7 +25,7 @@ abstract contract BaseDestinationAdapter is DiamondRootOval {
      * @return timestamp The timestamp of the most recent update.
      */
     function latestTimestamp() public view returns (uint256) {
-        (, uint256 timestamp) = internalLatestData();
+        (, uint256 timestamp,) = internalLatestData();
         return timestamp;
     }
 }

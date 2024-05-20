@@ -42,7 +42,7 @@ contract OvalChronicleMedianDestinationAdapter is CommonTest {
     }
 
     function verifyOvalOracleMatchesOvalOracle() public {
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp,) = oval.internalLatestData();
 
         (, bool sourceValid) = oval.peek();
         assertTrue(sourceValid);

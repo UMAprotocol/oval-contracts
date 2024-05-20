@@ -6,7 +6,6 @@ import {SafeCast} from "openzeppelin-contracts/contracts/utils/math/SafeCast.sol
 import {DecimalLib} from "../lib/DecimalLib.sol";
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
 import {DiamondRootOval} from "../../DiamondRootOval.sol";
-import "forge-std/console.sol";
 
 /**
  * @title ChainlinkSourceAdapter contract to read data from Chainlink aggregator and standardize it for Oval.

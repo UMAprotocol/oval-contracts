@@ -11,7 +11,8 @@ import {DecimalLib} from "../../../src/adapters/lib/DecimalLib.sol";
 import {ChainlinkSourceAdapter} from "../../../src/adapters/source-adapters/ChainlinkSourceAdapter.sol";
 
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
-import {RedstonePriceFeedWithRounds} from "../../../src/oracles/RedstonePriceFeedWithRounds.sol";
+import {MergedPriceFeedAdapterWithRounds} from
+    "redstone-oracles-monorepo/packages/on-chain-relayer/contracts/price-feeds/with-rounds/MergedPriceFeedAdapterWithRounds.sol";
 
 contract TestedSourceAdapter is ChainlinkSourceAdapter {
     constructor(IAggregatorV3Source source) ChainlinkSourceAdapter(source) {}
@@ -30,12 +31,12 @@ contract TestedSourceAdapter is ChainlinkSourceAdapter {
 contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
     uint256 targetBlock = 19889008;
 
-    RedstonePriceFeedWithRounds redstone;
+    MergedPriceFeedAdapterWithRounds redstone;
     TestedSourceAdapter sourceAdapter;
 
     function setUp() public {
         vm.createSelectFork("mainnet", targetBlock);
-        redstone = RedstonePriceFeedWithRounds(0xdDb6F90fFb4d3257dd666b69178e5B3c5Bf41136); // Redstone weETH
+        redstone = MergedPriceFeedAdapterWithRounds(0xdDb6F90fFb4d3257dd666b69178e5B3c5Bf41136); // Redstone weETH
         sourceAdapter = new TestedSourceAdapter(IAggregatorV3Source(address(redstone)));
     }
 
@@ -68,7 +69,8 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         uint256 targetTime = block.timestamp - 1 hours;
         (uint80 latestRound,,,,) = redstone.latestRoundData();
 
-        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 roundId) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 roundId) =
+            sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, int256 answer,, uint256 updatedAt,) = redstone.getRoundData(latestRound);
         assertTrue(roundId == latestRound);
         assertTrue(updatedAt <= targetTime);

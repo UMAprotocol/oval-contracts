@@ -24,3 +24,4 @@ scripts/contract-types
 node_modules
 
 log.txt
+getRedstonePayload.log.txt

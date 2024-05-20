@@ -75,13 +75,16 @@ abstract contract DiamondRootOval is IBaseController, IOval, IBaseOracleAdapter 
      * @notice Time window that bounds how long the permissioned actor has to call the unlockLatestValue function after
      * a new source update is posted. If the permissioned actor does not call unlockLatestValue within this window of a
      * new source price, the latest value will be made available to everyone without going through an MEV-Share auction.
-     * @return lockWindow time in seconds.
      */
     function lockWindow() public view virtual returns (uint256);
 
     /**
      * @notice Max number of historical source updates to traverse when looking for a historic value in the past.
-     * @return maxTraversal max number of historical source updates to traverse.
      */
     function maxTraversal() public view virtual returns (uint256);
+
+    /**
+     * @notice Max age of a historical price that can be used instead of the current price.
+     */
+    function maxAge() public view virtual returns (uint256);
 }

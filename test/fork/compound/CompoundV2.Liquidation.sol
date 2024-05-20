@@ -27,7 +27,7 @@ interface Usdc is IERC20 {
 contract TestedOval is ImmutableController, UniswapAnchoredViewSourceAdapter, BaseDestinationAdapter {
     constructor(IUniswapAnchoredView source, address cToken, address[] memory unlockers)
         UniswapAnchoredViewSourceAdapter(source, cToken)
-        ImmutableController(60, 10, unlockers)
+        ImmutableController(60, 10, unlockers, 86400)
         BaseDestinationAdapter()
     {}
 }

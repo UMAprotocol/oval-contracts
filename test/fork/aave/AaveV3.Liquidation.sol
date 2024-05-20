@@ -20,7 +20,7 @@ interface Usdc is IERC20 {
 contract TestedOval is ImmutableController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
     constructor(IAggregatorV3Source source, uint8 decimals, address[] memory unlockers)
         ChainlinkSourceAdapter(source)
-        ImmutableController(60, 10, unlockers)
+        ImmutableController(60, 10, unlockers, 86400)
         ChainlinkDestinationAdapter(decimals)
     {}
 }

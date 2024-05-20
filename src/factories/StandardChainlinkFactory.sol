@@ -18,10 +18,11 @@ contract OvalChainlink is MutableUnlockersController, ChainlinkSourceAdapter, Ch
         address[] memory unlockers,
         uint256 lockWindow,
         uint256 maxTraversal,
+        uint256 maxAge,
         address owner
     )
         ChainlinkSourceAdapter(source)
-        MutableUnlockersController(lockWindow, maxTraversal, unlockers)
+        MutableUnlockersController(lockWindow, maxTraversal, unlockers, maxAge)
         ChainlinkDestinationAdapter(18)
     {
         _transferOwnership(owner);
@@ -44,10 +45,12 @@ contract StandardChainlinkFactory is Ownable, BaseFactory {
      * @param source the Chainlink oracle source contract.
      * @param lockWindow the lockWindow used for this Oval instance. This is the length of the window
      * for the Oval auction to be run and, thus, the maximum time that prices will be delayed.
+     * @param maxAge max age of a price that is used in place of the current price. If the only available price is
+     * older than this, OEV is not captured and the current price is provided.
      * @return oval deployed oval address.
      */
-    function create(IAggregatorV3Source source, uint256 lockWindow) external returns (address oval) {
-        oval = address(new OvalChainlink(source, defaultUnlockers, lockWindow, MAX_TRAVERSAL, owner()));
+    function create(IAggregatorV3Source source, uint256 lockWindow, uint256 maxAge) external returns (address oval) {
+        oval = address(new OvalChainlink(source, defaultUnlockers, lockWindow, MAX_TRAVERSAL, maxAge, owner()));
         emit OvalDeployed(msg.sender, oval, lockWindow, MAX_TRAVERSAL, owner(), defaultUnlockers);
     }
 }

@@ -14,18 +14,8 @@ import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregator
 import {MergedPriceFeedAdapterWithRounds} from
     "redstone-oracle/on-chain-relayer/contracts/price-feeds/with-rounds/MergedPriceFeedAdapterWithRounds.sol";
 
-contract TestedSourceAdapter is ChainlinkSourceAdapter {
+contract TestedSourceAdapter is ChainlinkSourceAdapter, BaseController {
     constructor(IAggregatorV3Source source) ChainlinkSourceAdapter(source) {}
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-
-    function maxTraversal() public view virtual override returns (uint256) {}
 }
 
 contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {

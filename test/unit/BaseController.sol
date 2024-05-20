@@ -65,4 +65,17 @@ contract BaseControllerTest is CommonTest {
         vm.expectRevert("Ownable: caller is not the owner");
         baseController.setMaxTraversal(100);
     }
+
+    function testOwnerCanSetMaxAge() public {
+        uint256 newMaxAge = 7200; // 2 hours in seconds, different from default 1 day
+        vm.prank(owner);
+        baseController.setMaxAge(newMaxAge);
+        assertTrue(baseController.maxAge() == newMaxAge);
+    }
+
+    function testNonOwnerCannotSetMaxAge() public {
+        vm.prank(random);
+        vm.expectRevert("Ownable: caller is not the owner");
+        baseController.setMaxAge(7200);
+    }
 }

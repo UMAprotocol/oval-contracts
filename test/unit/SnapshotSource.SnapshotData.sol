@@ -5,6 +5,7 @@ import {CommonTest} from "../Common.sol";
 import {MockSnapshotSourceAdapter} from "../mocks/MockSnapshotSourceAdapter.sol";
 import {Oval} from "../../src/Oval.sol";
 import {BaseController} from "../../src/controllers/BaseController.sol";
+import "forge-std/console.sol";
 
 contract TestSnapshotSource is MockSnapshotSourceAdapter, Oval, BaseController {}
 
@@ -73,5 +74,42 @@ contract SnapshotSourceSnapshotDataTest is CommonTest {
         // latestSnapshotData should return the same data.
         snapshot = snapshotSource.latestSnapshotData();
         assertTrue(snapshot.answer == 100 && snapshot.timestamp == 1000);
+    }
+
+    function testMaxAgeIsRespected() public {
+        // Set maxAge to 2000 for testing
+        snapshotSource.setMaxAge(2000);
+
+        // Publish data at different timestamps
+        vm.warp(1000);
+        snapshotSource.publishSourceData(100, 1000);
+        snapshotSource.snapshotData();
+
+        vm.warp(2000);
+        snapshotSource.publishSourceData(200, 2000);
+        snapshotSource.snapshotData();
+
+        vm.warp(3000);
+        snapshotSource.publishSourceData(300, 3000);
+        snapshotSource.snapshotData();
+
+        vm.warp(4000);
+        snapshotSource.publishSourceData(400, 4000);
+        snapshotSource.snapshotData();
+
+        // Verify behavior when requesting data within the maxAge limit
+        (int256 answerAt4000, uint256 timestampAt4000,) = snapshotSource.tryLatestDataAt(4000, 10);
+        assertTrue(answerAt4000 == 400 && timestampAt4000 == 4000);
+
+        (int256 answerAt3000, uint256 timestampAt3000,) = snapshotSource.tryLatestDataAt(3000, 10);
+        assertTrue(answerAt3000 == 300 && timestampAt3000 == 3000);
+
+        // Request data at the limit of maxAge should still work.
+        (int256 answerAt2000, uint256 timestampAt2000,) = snapshotSource.tryLatestDataAt(2000, 10);
+        assertTrue(answerAt2000 == 200 && timestampAt2000 == 2000);
+
+        // Request data older than maxAge (1000), should get the latest available data at 4000.
+        (int256 answerAt1000, uint256 timestampAt1000,) = snapshotSource.tryLatestDataAt(1000, 10);
+        assertTrue(answerAt1000 == 400 && timestampAt1000 == 4000);
     }
 }

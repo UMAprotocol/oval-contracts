@@ -7,7 +7,7 @@ import {BaseDestinationAdapter} from "../../src/adapters/destination-adapters/Ba
 
 contract TestMutableUnlockersController is MutableUnlockersController, MockSourceAdapter, BaseDestinationAdapter {
     constructor(address[] memory _unlockers)
-        MutableUnlockersController(300, 15, _unlockers)
+        MutableUnlockersController(300, 15, _unlockers, 86400)
         MockSourceAdapter(18) // Assuming 18 decimals for the mock source adapter
         BaseDestinationAdapter()
     {}

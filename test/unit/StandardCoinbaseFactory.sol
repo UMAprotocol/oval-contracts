@@ -14,6 +14,7 @@ contract StandardCoinbaseFactoryTest is CommonTest {
     uint256 lockWindow = 300;
     uint256 maxTraversal = 15;
     string ticker = "test ticker";
+    uint256 maxAge = 86400;
 
     function setUp() public {
         mockSource = IAggregatorV3SourceCoinbase(address(new MockChainlinkV3Aggregator(8, 420)));
@@ -22,7 +23,7 @@ contract StandardCoinbaseFactoryTest is CommonTest {
     }
 
     function testCreateMutableUnlockerOvalCoinbase() public {
-        address created = factory.create(ticker, lockWindow);
+        address created = factory.create(ticker, lockWindow, maxAge);
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
@@ -38,7 +39,7 @@ contract StandardCoinbaseFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address created = factory.create(ticker, lockWindow);
+        address created = factory.create(ticker, lockWindow, maxAge);
         OvalCoinbase instance = OvalCoinbase(created);
 
         address newUnlocker = address(0x789);

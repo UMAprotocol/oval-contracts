@@ -12,6 +12,7 @@ contract StandardChronicleFactoryTest is CommonTest {
     address[] unlockers;
     uint256 lockWindow = 300;
     uint256 maxTraversal = 15;
+    uint256 maxAge = 86400;
 
     function setUp() public {
         mockSource = IMedian(address(0x456));
@@ -20,7 +21,7 @@ contract StandardChronicleFactoryTest is CommonTest {
     }
 
     function testCreateMutableUnlockerOvalChronicle() public {
-        address created = factory.create(mockSource, lockWindow);
+        address created = factory.create(mockSource, lockWindow, maxAge);
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
@@ -36,7 +37,7 @@ contract StandardChronicleFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address created = factory.create(mockSource, lockWindow);
+        address created = factory.create(mockSource, lockWindow, maxAge);
         OvalChronicle instance = OvalChronicle(created);
 
         address newUnlocker = address(0x789);

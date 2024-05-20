@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import {CommonTest} from "../../Common.sol";
 
+import {BaseController} from "../../../src/controllers/BaseController.sol";
 import {IValidatorProxyTest} from "../interfaces/compoundV2/IValidatorProxy.sol";
 import {MockChainlinkV3Aggregator} from "../../mocks/MockChainlinkV3Aggregator.sol";
 import {UniswapAnchoredViewSourceAdapter} from
@@ -10,13 +11,8 @@ import {UniswapAnchoredViewSourceAdapter} from
 import {IAccessControlledAggregatorV3} from "../../../src/interfaces/chainlink/IAccessControlledAggregatorV3.sol";
 import {IUniswapAnchoredView} from "../../../src/interfaces/compound/IUniswapAnchoredView.sol";
 
-contract TestedSourceAdapter is UniswapAnchoredViewSourceAdapter {
+contract TestedSourceAdapter is UniswapAnchoredViewSourceAdapter, BaseController {
     constructor(IUniswapAnchoredView source, address cToken) UniswapAnchoredViewSourceAdapter(source, cToken) {}
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-    function lockWindow() public view virtual override returns (uint256) {}
-    function maxTraversal() public view virtual override returns (uint256) {}
 }
 
 contract UniswapAnchoredViewSourceAdapterTest is CommonTest {

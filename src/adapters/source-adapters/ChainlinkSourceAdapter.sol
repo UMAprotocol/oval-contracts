@@ -94,7 +94,9 @@ abstract contract ChainlinkSourceAdapter is DiamondRootOval {
             _searchRoundDataAt(timestamp, roundId, maxTraversal);
 
         // Validate returned data. If it is uninitialized we fallback to returning the current latest round data.
-        if (historicalUpdatedAt > 0) return (historicalAnswer, historicalUpdatedAt, historicalRoundId);
+        if (historicalUpdatedAt > block.timestamp - maxAge()) {
+            return (historicalAnswer, historicalUpdatedAt, historicalRoundId);
+        }
         return (answer, updatedAt, roundId);
     }
 

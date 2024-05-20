@@ -9,6 +9,7 @@ abstract contract MockSourceAdapter is DiamondRootOval {
     struct RoundData {
         int256 answer;
         uint256 timestamp;
+        uint256 roundId; // Assigned automatically, starting at 1.
     }
 
     RoundData[] public rounds;
@@ -20,7 +21,7 @@ abstract contract MockSourceAdapter is DiamondRootOval {
     function snapshotData() public override {}
 
     function publishRoundData(int256 answer, uint256 timestamp) public {
-        rounds.push(RoundData(answer, timestamp));
+        rounds.push(RoundData(answer, timestamp, rounds.length + 1));
     }
 
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
@@ -28,10 +29,10 @@ abstract contract MockSourceAdapter is DiamondRootOval {
         view
         virtual
         override
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         RoundData memory latestData = _tryLatestDataAt(timestamp, maxTraversal);
-        return (latestData.answer, latestData.timestamp);
+        return (latestData.answer, latestData.timestamp, latestData.roundId);
     }
 
     function getLatestSourceData() public view virtual override returns (int256, uint256) {
@@ -39,9 +40,15 @@ abstract contract MockSourceAdapter is DiamondRootOval {
         return (latestData.answer, latestData.timestamp);
     }
 
+    function getSourceDataAtRound(uint256 roundId) public view virtual override returns (int256, uint256) {
+        if (roundId == 0 || rounds.length < roundId) return (0, 0);
+        RoundData memory roundData = rounds[roundId - 1];
+        return (roundData.answer, roundData.timestamp);
+    }
+
     function _latestRoundData() internal view returns (RoundData memory) {
         if (rounds.length > 0) return rounds[rounds.length - 1];
-        return RoundData(0, 0);
+        return RoundData(0, 0, 0);
     }
 
     function _tryLatestDataAt(uint256 timestamp, uint256 maxTraversal) internal view returns (RoundData memory) {
@@ -57,11 +64,11 @@ abstract contract MockSourceAdapter is DiamondRootOval {
     function _searchDataAt(uint256 timestamp, uint256 maxTraversal) internal view returns (RoundData memory) {
         RoundData memory roundData;
         uint256 traversedRounds = 0;
-        uint256 roundId = rounds.length;
+        uint256 roundIndex = rounds.length;
 
-        while (traversedRounds < maxTraversal && roundId > 0) {
-            roundId--;
-            roundData = rounds[roundId];
+        while (traversedRounds < maxTraversal && roundIndex > 0) {
+            roundIndex--;
+            roundData = rounds[roundIndex];
             if (roundData.timestamp <= timestamp) return roundData;
             traversedRounds++;
         }

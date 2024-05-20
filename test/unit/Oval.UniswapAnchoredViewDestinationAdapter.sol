@@ -11,6 +11,7 @@ import {CommonTest} from "../Common.sol";
 contract OvalUniswapAnchoredViewDestinationAdapter is CommonTest {
     int256 newAnswer = 1900 * 1e18;
     uint256 newTimestamp = 1690000000;
+    uint256 roundId = 1; // UniswapAnchoredView does not support roundId and has it hardcoded to 1.
 
     int256 internalDecimalsToSourceDecimals = 1e10;
 
@@ -73,7 +74,9 @@ contract OvalUniswapAnchoredViewDestinationAdapter is CommonTest {
         destinationAdapter.setOval(cTokenAddress, OvalAddress);
 
         vm.mockCall(
-            OvalAddress, abi.encodeWithSelector(IOval.internalLatestData.selector), abi.encode(newAnswer, newTimestamp)
+            OvalAddress,
+            abi.encodeWithSelector(IOval.internalLatestData.selector),
+            abi.encode(newAnswer, newTimestamp, roundId)
         );
         uint256 underlyingPrice = destinationAdapter.getUnderlyingPrice(cTokenAddress);
 

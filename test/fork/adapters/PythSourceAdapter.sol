@@ -9,7 +9,9 @@ import {IPyth} from "../../../src/interfaces/pyth/IPyth.sol";
 contract TestedSourceAdapter is PythSourceAdapter {
     constructor(IPyth source, bytes32 priceId) PythSourceAdapter(source, priceId) {}
 
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
+
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
 
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
@@ -52,9 +54,11 @@ contract PythSourceAdapterTest is CommonTest {
         assertTrue(latestPythPrice.publishTime > targetTime);
 
         // Pyth does not support historical lookups so this should still return latest data without snapshotting.
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 100);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) =
+            sourceAdapter.tryLatestDataAt(targetTime, 100);
         assertTrue(_scalePythTo18(latestPythPrice) == lookBackPrice);
         assertTrue(latestPythPrice.publishTime == lookBackTimestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testCorrectlyLooksBackThroughSnapshots() public {
@@ -62,18 +66,24 @@ contract PythSourceAdapterTest is CommonTest {
 
         for (uint256 i = 0; i < snapshotAnswers.length; i++) {
             // Lookback at exact snapshot timestamp should return the same answer and timestamp.
-            (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i], 10);
+            (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i], 10);
             assertTrue(snapshotAnswers[i] == lookBackPrice);
             assertTrue(snapshotTimestamps[i] == lookBackTimestamp);
+            assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
 
             // Source updates were more than 1 minute apart, so lookback 1 minute later should return the same answer.
-            (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] + 60, 10);
+            (lookBackPrice, lookBackTimestamp, lookBackRoundId) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] + 60, 10);
             assertTrue(snapshotAnswers[i] == lookBackPrice);
             assertTrue(snapshotTimestamps[i] == lookBackTimestamp);
+            assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
 
             // Source updates were more than 1 minute apart, so lookback 1 minute earlier should return the previous answer,
             // except for the first snapshot which should return the same answer as it does not have earlier data.
-            (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] - 60, 10);
+            (lookBackPrice, lookBackTimestamp, lookBackRoundId) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] - 60, 10);
+            assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
             if (i > 0) {
                 assertTrue(snapshotAnswers[i - 1] == lookBackPrice);
                 assertTrue(snapshotTimestamps[i - 1] == lookBackTimestamp);
@@ -90,10 +100,11 @@ contract PythSourceAdapterTest is CommonTest {
         // If we limit how far we can lookback the source adapter snapshot should correctly return the oldest data it
         // can find, up to that limit. When searching for the earliest possible snapshot while limiting maximum snapshot
         // traversal to 1 we should still get the latest data.
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(0, 1);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) = sourceAdapter.tryLatestDataAt(0, 1);
         IPyth.Price memory latestPythPrice = pyth.getPriceUnsafe(priceId);
         assertTrue(_scalePythTo18(latestPythPrice) == lookBackPrice);
         assertTrue(latestPythPrice.publishTime == lookBackTimestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testPositiveExpo() public {

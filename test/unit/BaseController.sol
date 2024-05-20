@@ -10,7 +10,7 @@ contract TestBaseController is BaseController, MockSourceAdapter, BaseDestinatio
     constructor(uint8 decimals) MockSourceAdapter(decimals) BaseController() BaseDestinationAdapter() {}
 }
 
-contract OvalUnlockLatestValue is CommonTest {
+contract BaseControllerTest is CommonTest {
     uint256 lastUnlockTime = 1690000000;
 
     TestBaseController baseController;

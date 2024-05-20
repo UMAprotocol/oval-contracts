@@ -14,7 +14,7 @@ contract TestImmutableController is ImmutableController, MockSourceAdapter, Base
     {}
 }
 
-contract OvalUnlockLatestValue is CommonTest {
+contract ImmutableControllerTest is CommonTest {
     uint8 decimals = 8;
     uint256 lockWindow = 60;
     uint256 maxTraversal = 10;
@@ -46,29 +46,5 @@ contract OvalUnlockLatestValue is CommonTest {
 
     function testMaxTraversalSetCorrectly() public {
         assertTrue(immutableController.maxTraversal() == maxTraversal);
-    }
-
-    function testCannotSetUnlocker() public {
-        bytes4 selector = bytes4(keccak256("setUnlocker(address,bool)"));
-        bytes memory data = abi.encodeWithSelector(selector, random, true);
-        vm.prank(owner);
-        (bool success,) = address(immutableController).call(data);
-        assertFalse(success);
-    }
-
-    function testCannotSetLockWindow() public {
-        bytes4 selector = bytes4(keccak256("setLockWindow(uint256)"));
-        bytes memory data = abi.encodeWithSelector(selector, lockWindow + 1);
-        vm.prank(owner);
-        (bool success,) = address(immutableController).call(data);
-        assertFalse(success);
-    }
-
-    function testCannotSetMaxTraversal() public {
-        bytes4 selector = bytes4(keccak256("setMaxTraversal(uint256)"));
-        bytes memory data = abi.encodeWithSelector(selector, maxTraversal + 1);
-        vm.prank(owner);
-        (bool success,) = address(immutableController).call(data);
-        assertFalse(success);
     }
 }

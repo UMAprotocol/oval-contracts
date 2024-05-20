@@ -5,15 +5,25 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Oval} from "../Oval.sol";
 
 /**
- * @title BaseController providing the simplest possible controller logic to govern who can unlock Oval.
- * @dev Custom Controllers can be created to provide more granular control over who can unlock Oval.
+ * @title MutableUnlockersController is a controller that only allows unlockers to be change, but other params are immutable.
  */
-abstract contract BaseController is Ownable, Oval {
+abstract contract MutableUnlockersController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
-    uint256 private lockWindow_ = 60; // The lockWindow in seconds.
-    uint256 private maxTraversal_ = 10; // The maximum number of rounds to traverse when looking for historical data.
+    uint256 private immutable LOCK_WINDOW; // The lockWindow in seconds.
+    uint256 private immutable MAX_TRAVERSAL; // The maximum number of rounds to traverse when looking for historical data.
 
     mapping(address => bool) public unlockers;
+
+    constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers) {
+        LOCK_WINDOW = _lockWindow;
+        MAX_TRAVERSAL = _maxTraversal;
+        for (uint256 i = 0; i < _unlockers.length; i++) {
+            setUnlocker(_unlockers[i], true);
+        }
+
+        emit LockWindowSet(_lockWindow);
+        emit MaxTraversalSet(_maxTraversal);
+    }
 
     /**
      * @notice Enables the owner to set the unlocker status of an address. Once set, the address can unlock Oval
@@ -39,41 +49,13 @@ abstract contract BaseController is Ownable, Oval {
     }
 
     /**
-     * @notice Enables the owner to set the lockWindow.
-     * @dev If changing the lockWindow would cause Oval to return different data the permissioned actor must first
-     * call unlockLatestValue through flashbots via eth_sendPrivateTransaction.
-     * @param newLockWindow The lockWindow to set.
-     */
-    function setLockWindow(uint256 newLockWindow) public onlyOwner {
-        (int256 currentAnswer, uint256 currentTimestamp,) = internalLatestData();
-
-        lockWindow_ = newLockWindow;
-
-        // Compare Oval results so that change in lock window does not change returned data.
-        (int256 newAnswer, uint256 newTimestamp,) = internalLatestData();
-        require(currentAnswer == newAnswer && currentTimestamp == newTimestamp, "Must unlock first");
-
-        emit LockWindowSet(newLockWindow);
-    }
-
-    /**
-     * @notice Enables the owner to set the maxTraversal.
-     * @param newMaxTraversal The maxTraversal to set.
-     */
-    function setMaxTraversal(uint256 newMaxTraversal) public onlyOwner {
-        maxTraversal_ = newMaxTraversal;
-
-        emit MaxTraversalSet(newMaxTraversal);
-    }
-
-    /**
      * @notice Time window that bounds how long the permissioned actor has to call the unlockLatestValue function after
      * a new source update is posted. If the permissioned actor does not call unlockLatestValue within this window of a
      * new source price, the latest value will be made available to everyone without going through an MEV-Share auction.
      * @return lockWindow time in seconds.
      */
     function lockWindow() public view override returns (uint256) {
-        return lockWindow_;
+        return LOCK_WINDOW;
     }
 
     /**
@@ -81,6 +63,6 @@ abstract contract BaseController is Ownable, Oval {
      * @return maxTraversal max number of historical source updates to traverse.
      */
     function maxTraversal() public view override returns (uint256) {
-        return maxTraversal_;
+        return MAX_TRAVERSAL;
     }
 }

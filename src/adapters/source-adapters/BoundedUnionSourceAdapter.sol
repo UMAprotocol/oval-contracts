@@ -124,7 +124,7 @@ abstract contract BoundedUnionSourceAdapter is
         (boundedAnswer, boundedTimestamp) = _selectBoundedPrice(data);
 
         // Return bounded data unless there is a newer snapshotted data that still satisfies time constraint.
-        if (boundedTimestamp >= snapshot.timestamp || snapshot.timestamp > timestamp) {
+        if (boundedTimestamp > snapshot.timestamp || snapshot.timestamp > timestamp) {
             return (boundedAnswer, boundedTimestamp, 1);
         }
         return (snapshot.answer, snapshot.timestamp, 1);

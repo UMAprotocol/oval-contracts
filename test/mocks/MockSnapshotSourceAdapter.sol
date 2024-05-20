@@ -28,17 +28,21 @@ abstract contract MockSnapshotSourceAdapter is DiamondRootOval {
         return (latestData.answer, latestData.timestamp);
     }
 
+    function getSourceDataAtRound(uint256 /* roundId */ ) public view virtual override returns (int256, uint256) {
+        return (0, 0);
+    }
+
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
         view
         virtual
         override
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         (int256 latestAnswer, uint256 latestTimestamp) = MockSnapshotSourceAdapter.getLatestSourceData();
         SnapshotSourceLib.Snapshot memory latestData =
             SnapshotSourceLib._tryLatestDataAt(mockSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal);
-        return (latestData.answer, latestData.timestamp);
+        return (latestData.answer, latestData.timestamp, 1);
     }
 
     function latestSnapshotData() public view returns (SnapshotSourceLib.Snapshot memory) {

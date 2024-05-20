@@ -43,6 +43,16 @@ abstract contract PythSourceAdapter is DiamondRootOval {
     }
 
     /**
+     * @notice Returns the requested round data from the source.
+     * @dev Pyth does not support this and returns uninitialized data.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function getSourceDataAtRound(uint256 /* roundId */ ) public view virtual override returns (int256, uint256) {
+        return (0, 0);
+    }
+
+    /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
      * @dev Pyth does not support historical lookups so this uses SnapshotSourceLib to get historic data.
@@ -50,18 +60,19 @@ abstract contract PythSourceAdapter is DiamondRootOval {
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer (hardcoded to 1 as Pyth does not support it).
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
         view
         virtual
         override
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         (int256 latestAnswer, uint256 latestTimestamp) = PythSourceAdapter.getLatestSourceData();
         SnapshotSourceLib.Snapshot memory snapshot =
             SnapshotSourceLib._tryLatestDataAt(pythSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal);
-        return (snapshot.answer, snapshot.timestamp);
+        return (snapshot.answer, snapshot.timestamp, 1);
     }
 
     // Handle a per-price "expo" (decimal) value from pyth.

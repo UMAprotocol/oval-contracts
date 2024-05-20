@@ -9,7 +9,8 @@ import {IMedian} from "../../../src/interfaces/chronicle/IMedian.sol";
 
 contract TestedSourceAdapter is OSMSourceAdapter {
     constructor(IOSM source) OSMSourceAdapter(source) {}
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
     function lockWindow() public view virtual override returns (uint256) {}
     function maxTraversal() public view virtual override returns (uint256) {}
@@ -53,9 +54,11 @@ contract OSMSourceAdapterTest is CommonTest {
         assertTrue(latestOSMTimestamp > targetTime);
 
         // OSM does not support historical lookups so this should still return latest data without snapshotting.
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 100);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) =
+            sourceAdapter.tryLatestDataAt(targetTime, 100);
         assertTrue(int256(uint256(latestOSMAnswer)) == lookBackPrice);
         assertTrue(latestOSMTimestamp == lookBackTimestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function testCorrectlyLooksBackThroughSnapshots() public {
@@ -63,18 +66,24 @@ contract OSMSourceAdapterTest is CommonTest {
 
         for (uint256 i = 0; i < snapshotAnswers.length; i++) {
             // Lookback at exact snapshot timestamp should return the same answer and timestamp.
-            (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i], 10);
+            (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i], 10);
             assertTrue(int256(snapshotAnswers[i]) == lookBackPrice);
             assertTrue(snapshotTimestamps[i] == lookBackTimestamp);
+            assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
 
             // Source updates were ~1 hour apart, so lookback 10 minutes later should return the same answer.
-            (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] + 600, 10);
+            (lookBackPrice, lookBackTimestamp, lookBackRoundId) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] + 600, 10);
             assertTrue(int256(snapshotAnswers[i]) == lookBackPrice);
             assertTrue(snapshotTimestamps[i] == lookBackTimestamp);
+            assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
 
             // Source updates were ~1 hour apart, so lookback 10 minutes earlier should return the previous answer,
             // except for the first snapshot which should return the same answer as it does not have earlier data.
-            (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] - 600, 10);
+            (lookBackPrice, lookBackTimestamp, lookBackRoundId) =
+                sourceAdapter.tryLatestDataAt(snapshotTimestamps[i] - 600, 10);
+            assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
             if (i > 0) {
                 assertTrue(int256(snapshotAnswers[i - 1]) == lookBackPrice);
                 assertTrue(snapshotTimestamps[i - 1] == lookBackTimestamp);
@@ -91,11 +100,12 @@ contract OSMSourceAdapterTest is CommonTest {
         // If we limit how far we can lookback the source adapter snapshot should correctly return the oldest data it
         // can find, up to that limit. When searching for the earliest possible snapshot while limiting maximum snapshot
         // traversal to 1 we should still get the latest data.
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(0, 1);
+        (int256 lookBackPrice, uint256 lookBackTimestamp, uint256 lookBackRoundId) = sourceAdapter.tryLatestDataAt(0, 1);
         bytes32 latestOSMAnswer = osm.read();
         uint64 latestOSMTimestamp = osm.zzz();
         assertTrue(int256(uint256(latestOSMAnswer)) == lookBackPrice);
         assertTrue(latestOSMTimestamp == lookBackTimestamp);
+        assertTrue(lookBackRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 
     function _whitelistOnOSM() internal {

@@ -67,6 +67,22 @@ abstract contract BoundedUnionSourceAdapter is
     }
 
     /**
+     * @notice Returns the requested round data from the source.
+     * @dev Not all aggregated adapters support this, so this returns uninitialized data.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
+    function getSourceDataAtRound(uint256 /* roundId */ )
+        public
+        view
+        virtual
+        override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
+        returns (int256, uint256)
+    {
+        return (0, 0);
+    }
+
+    /**
      * @notice Snapshot the current bounded union source data.
      */
     function snapshotData() public override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter) {
@@ -80,22 +96,23 @@ abstract contract BoundedUnionSourceAdapter is
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer (hardcoded to 1 as not all aggregated adapters support it).
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
         view
         override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         // In the happy path there have been no source updates since requested time, so we can return the latest data.
         AllSourceData memory data = _getAllLatestSourceData();
         (int256 boundedAnswer, uint256 boundedTimestamp) = _selectBoundedPrice(
             data.clAnswer, data.clTimestamp, data.crAnswer, data.crTimestamp, data.pyAnswer, data.pyTimestamp
         );
-        if (boundedTimestamp <= timestamp) return (boundedAnswer, boundedTimestamp);
+        if (boundedTimestamp <= timestamp) return (boundedAnswer, boundedTimestamp, 1);
 
         // Chainlink has price history, so use tryLatestDataAt to pull the most recent price that satisfies the timestamp constraint.
-        (data.clAnswer, data.clTimestamp) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
+        (data.clAnswer, data.clTimestamp,) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
 
         // "Drop" Chronicle and/or Pyth by setting their timestamps to 0 (as old as possible) if they are too recent.
         // This means that they will never be used if either or both are 0.
@@ -114,9 +131,9 @@ abstract contract BoundedUnionSourceAdapter is
 
         // Return bounded data unless there is a newer snapshotted data that still satisfies time constraint.
         if (boundedTimestamp >= snapshot.timestamp || snapshot.timestamp > timestamp) {
-            return (boundedAnswer, boundedTimestamp);
+            return (boundedAnswer, boundedTimestamp, 1);
         }
-        return (snapshot.answer, snapshot.timestamp);
+        return (snapshot.answer, snapshot.timestamp, 1);
     }
 
     // Internal helper to get the latest data from all sources.

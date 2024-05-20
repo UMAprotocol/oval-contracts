@@ -19,7 +19,7 @@ abstract contract ChronicleMedianDestinationAdapter is IMedian, DiamondRootOval 
      * @return answer The latest answer in 18 decimals.
      */
     function read() public view override returns (uint256) {
-        (int256 answer,) = internalLatestData();
+        (int256 answer,,) = internalLatestData();
         require(answer > 0, "Median/invalid-price-feed");
         return uint256(answer);
     }
@@ -30,7 +30,7 @@ abstract contract ChronicleMedianDestinationAdapter is IMedian, DiamondRootOval 
      * @return valid True if the value returned is valid.
      */
     function peek() public view override returns (uint256, bool) {
-        (int256 answer,) = internalLatestData();
+        (int256 answer,,) = internalLatestData();
         return (uint256(answer), answer > 0);
     }
 
@@ -39,7 +39,7 @@ abstract contract ChronicleMedianDestinationAdapter is IMedian, DiamondRootOval 
      * @return timestamp The timestamp of the most recent update.
      */
     function age() public view override returns (uint32) {
-        (, uint256 timestamp) = internalLatestData();
+        (, uint256 timestamp,) = internalLatestData();
         return uint32(timestamp);
     }
 }

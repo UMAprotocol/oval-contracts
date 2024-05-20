@@ -97,6 +97,33 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         assertTrue(uint256(roundId) == lookBackRoundId);
     }
 
+    function testCorrectlyBoundsMaxLooBackByMaxAge() public {
+        // Value returned at 2 days should be the same as the value returned at 1 day as the max age is 1 day.
+        assertTrue(sourceAdapter.maxAge() == 1 days);
+        (int256 lookBackPricePastWindow, uint256 lookBackTimestampPastWindow, uint256 lookBackRoundIdPastWindow) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 2 days, 50);
+
+        (int256 lookBackPriceAtLimit, uint256 lookBackTimestampAtLimit, uint256 lookBackRoundIdAtLimit) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 1 days, 50);
+
+        assertTrue(lookBackPricePastWindow == lookBackPriceAtLimit);
+        assertTrue(lookBackTimestampPastWindow == lookBackTimestampAtLimit);
+        assertTrue(lookBackRoundIdPastWindow == lookBackRoundIdAtLimit);
+    }
+
+    function testExtendingMaxAgeCorrectlyExtendsWindowOfReturnedValue() public {
+        sourceAdapter.setMaxAge(2 days);
+        (int256 lookBackPricePastWindow, uint256 lookBackTimestampPastWindow, uint256 lookBackRoundIdPastWindow) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 3 days, 50);
+
+        (int256 lookBackPriceAtLimit, uint256 lookBackTimestampAtLimit, uint256 lookBackRoundIdAtLimit) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 2 days, 50);
+
+        assertTrue(lookBackPricePastWindow == lookBackPriceAtLimit);
+        assertTrue(lookBackTimestampPastWindow == lookBackTimestampAtLimit);
+        assertTrue(lookBackRoundIdPastWindow == lookBackRoundIdAtLimit);
+    }
+
     function testNonHistoricalData() public {
         uint256 targetTime = block.timestamp - 1 hours;
 

@@ -56,7 +56,7 @@ abstract contract SnapshotSource is DiamondRootOval {
         Snapshot memory historicalData = _searchSnapshotAt(timestamp, maxTraversal);
 
         // Validate returned data. If it is uninitialized or too old we fallback to returning the current latest round data.
-        if (historicalData.timestamp > block.timestamp - maxAge()) return historicalData;
+        if (historicalData.timestamp >= block.timestamp - maxAge()) return historicalData;
         return latestData;
     }
 

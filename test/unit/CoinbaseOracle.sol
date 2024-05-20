@@ -43,12 +43,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
 
         bytes memory encodedData = abi.encode(kind, timestamp, ticker, price);
 
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                "\x19Ethereum Signed Message:\n32",
-                keccak256(encodedData)
-            )
-        );
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(encodedData)));
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(reporterPk, hash);
 
@@ -56,8 +51,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
 
         coinbaseOracle.pushPrice(encodedData, signature);
 
-        (, int256 answer, uint256 updatedAt, , ) = coinbaseOracle
-            .latestRoundData(ticker);
+        (, int256 answer, uint256 updatedAt,,) = coinbaseOracle.latestRoundData(ticker);
 
         assertEq(uint256(answer), price);
         assertEq(updatedAt, timestamp);

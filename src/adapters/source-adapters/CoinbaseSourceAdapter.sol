@@ -32,6 +32,7 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of the requested timestamp, or the earliest available data if not available, in 18 decimals.
      * @return updatedAt The timestamp of the answer.
+     * @return roundId The roundId of the answer (hardcoded to 1 for Coinbase).
      */
     function tryLatestDataAt(uint256 timestamp, uint256 maxTraversal)
         public
@@ -59,6 +60,12 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
         return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
     }
 
+    /**
+     * @notice Returns the requested round data from the source.
+     * @dev Round data not exposed for Coinbase, so this returns uninitialized data.
+     * @return answer Round answer in 18 decimals.
+     * @return updatedAt The timestamp of the answer.
+     */
     function getSourceDataAtRound(uint256 /* roundId */ ) public view virtual override returns (int256, uint256) {
         return (0, 0);
     }

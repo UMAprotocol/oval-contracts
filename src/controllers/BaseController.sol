@@ -12,6 +12,7 @@ abstract contract BaseController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private lockWindow_ = 60; // The lockWindow in seconds.
     uint256 private maxTraversal_ = 10; // The maximum number of rounds to traverse when looking for historical data.
+    uint256 private maxAge_ = 86400; // Default 1 day.
 
     mapping(address => bool) public unlockers;
 
@@ -67,6 +68,16 @@ abstract contract BaseController is Ownable, Oval {
     }
 
     /**
+     * @notice Enables the owner to set the maxAge.
+     * @param newMaxAge The maxAge to set
+     */
+    function setMaxAge(uint256 newMaxAge) public onlyOwner {
+        maxAge_ = newMaxAge;
+
+        emit MaxAgeSet(newMaxAge);
+    }
+
+    /**
      * @notice Time window that bounds how long the permissioned actor has to call the unlockLatestValue function after
      * a new source update is posted. If the permissioned actor does not call unlockLatestValue within this window of a
      * new source price, the latest value will be made available to everyone without going through an MEV-Share auction.
@@ -81,6 +92,13 @@ abstract contract BaseController is Ownable, Oval {
      * @return maxTraversal max number of historical source updates to traverse.
      */
     function maxTraversal() public view override returns (uint256) {
+        return maxTraversal_;
+    }
+
+    /**
+     * @notice Max age of a historical price that can be used instead of the current price.
+     */
+    function maxAge() public view override returns (uint256) {
         return maxTraversal_;
     }
 }

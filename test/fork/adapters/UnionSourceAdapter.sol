@@ -22,6 +22,8 @@ contract TestedSourceAdapter is UnionSourceAdapter {
     function lockWindow() public view virtual override returns (uint256) {}
 
     function maxTraversal() public view virtual override returns (uint256) {}
+
+    function maxAge() public view virtual override returns (uint256) {}
 }
 
 contract UnionSourceAdapterTest is CommonTest {

@@ -7,9 +7,15 @@ import {BaseDestinationAdapter} from "../../src/adapters/destination-adapters/Ba
 import {MockSourceAdapter} from "../mocks/MockSourceAdapter.sol";
 
 contract TestImmutableController is ImmutableController, MockSourceAdapter, BaseDestinationAdapter {
-    constructor(uint8 decimals, uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers)
+    constructor(
+        uint8 decimals,
+        uint256 _lockWindow,
+        uint256 _maxTraversal,
+        address[] memory _unlockers,
+        uint256 _maxAge
+    )
         MockSourceAdapter(decimals)
-        ImmutableController(_lockWindow, _maxTraversal, _unlockers)
+        ImmutableController(_lockWindow, _maxTraversal, _unlockers, _maxAge)
         BaseDestinationAdapter()
     {}
 }
@@ -19,6 +25,7 @@ contract OvalUnlockLatestValue is CommonTest {
     uint256 lockWindow = 60;
     uint256 maxTraversal = 10;
     address[] unlockers;
+    uint256 maxAge = 86400;
 
     uint256 lastUnlockTime = 1690000000;
 
@@ -28,7 +35,7 @@ contract OvalUnlockLatestValue is CommonTest {
         unlockers.push(permissionedUnlocker);
 
         vm.startPrank(owner);
-        immutableController = new TestImmutableController(decimals, lockWindow, maxTraversal, unlockers);
+        immutableController = new TestImmutableController(decimals, lockWindow, maxTraversal, unlockers, maxAge);
         vm.stopPrank();
     }
 

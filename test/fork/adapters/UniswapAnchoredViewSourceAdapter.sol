@@ -17,6 +17,7 @@ contract TestedSourceAdapter is UniswapAnchoredViewSourceAdapter {
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
     function lockWindow() public view virtual override returns (uint256) {}
     function maxTraversal() public view virtual override returns (uint256) {}
+    function maxAge() public view virtual override returns (uint256) {}
 }
 
 contract UniswapAnchoredViewSourceAdapterTest is CommonTest {

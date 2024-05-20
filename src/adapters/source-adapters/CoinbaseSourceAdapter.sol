@@ -38,10 +38,10 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
         view
         virtual
         override
-        returns (int256, uint256)
+        returns (int256, uint256, uint256)
     {
         (int256 answer, uint256 updatedAt) = _tryLatestRoundDataAt(timestamp, maxTraversal);
-        return (DecimalLib.convertDecimals(answer, SOURCE_DECIMALS, 18), updatedAt);
+        return (DecimalLib.convertDecimals(answer, SOURCE_DECIMALS, 18), updatedAt, 1);
     }
 
     /**
@@ -57,6 +57,10 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
     function getLatestSourceData() public view virtual override returns (int256, uint256) {
         (, int256 sourceAnswer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData(TICKER);
         return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
+    }
+
+    function getSourceDataAtRound(uint256 /* roundId */ ) public view virtual override returns (int256, uint256) {
+        return (0, 0);
     }
 
     // Tries getting the latest data as of the requested timestamp. If this is not possible,

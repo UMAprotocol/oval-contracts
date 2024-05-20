@@ -16,7 +16,9 @@ import {RedstonePriceFeedWithRounds} from "../../../src/oracles/RedstonePriceFee
 contract TestedSourceAdapter is ChainlinkSourceAdapter {
     constructor(IAggregatorV3Source source) ChainlinkSourceAdapter(source) {}
 
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
+
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
 
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
@@ -66,7 +68,7 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         uint256 targetTime = block.timestamp - 1 hours;
         (uint80 latestRound,,,,) = redstone.latestRoundData();
 
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, int256 answer,, uint256 updatedAt,) = redstone.getRoundData(latestRound);
         assertTrue(updatedAt <= targetTime);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
@@ -75,7 +77,7 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         // Next, try looking back 2 hours. by looking on-chain we can see only one update was applied. Therefore we
         // should get the values from latestRound -1 (one update applied relative to the "latest" round).
         targetTime = block.timestamp - 2 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, answer,, updatedAt,) = redstone.getRoundData(latestRound - 1);
         assertTrue(updatedAt <= targetTime);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
@@ -84,7 +86,7 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         // Next, try land at 2 rounds ago. Again, by looking on-chain, we can see this is ~2 23 mins before the current
         // fork timestamp. We should be able to show the value is the oldest value within this interval.
         targetTime = block.timestamp - 2 hours - 23 minutes;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, answer,, updatedAt,) = redstone.getRoundData(latestRound - 2);
         assertTrue(updatedAt <= targetTime);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
@@ -93,7 +95,7 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         // Now, try 3 hours old. On-chain there were 5 updates in this interval. we should be able to show the value is
         // the oldest value within this interval.
         targetTime = block.timestamp - 3 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 10);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 10);
         (, answer,, updatedAt,) = redstone.getRoundData(latestRound - 5);
         assertTrue(updatedAt <= targetTime);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
@@ -106,7 +108,7 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
         // 2. If we try look back longer than this we should get the price from round 2, no matter how far we look back,
         // if we bound the maximum lookback to 2 rounds.
         uint256 targetTime = block.timestamp - 2 hours - 23 minutes;
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         (uint80 latestRound,,,,) = redstone.latestRoundData();
         (, int256 answer,, uint256 updatedAt,) = redstone.getRoundData(latestRound - 2);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
@@ -114,11 +116,11 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
 
         // Now, lookback longer than 2 hours. should get the same value as before.
         targetTime = block.timestamp - 3 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
         assertTrue(updatedAt == lookBackTimestamp);
         targetTime = block.timestamp - 10 hours;
-        (lookBackPrice, lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 2);
+        (lookBackPrice, lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 2);
         assertTrue(scaleRedstoneTo18(answer) == lookBackPrice);
         assertTrue(updatedAt == lookBackTimestamp);
     }
@@ -128,7 +130,7 @@ contract RedstoneAsChainlinkSourceAdapterTest is CommonTest {
 
         (, int256 answer,, uint256 updatedAt,) = redstone.latestRoundData();
 
-        (int256 lookBackPrice, uint256 lookBackTimestamp) = sourceAdapter.tryLatestDataAt(targetTime, 0);
+        (int256 lookBackPrice, uint256 lookBackTimestamp,) = sourceAdapter.tryLatestDataAt(targetTime, 0);
         assertEq(lookBackPrice / 10 ** 10, answer);
         assertEq(lookBackTimestamp, updatedAt);
     }

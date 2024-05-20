@@ -23,8 +23,8 @@ contract BaseFactory is Ownable {
         address[] unlockers
     );
 
-    constructor(uint256 maxTraversal, address[] memory _defaultUnlockers) {
-        MAX_TRAVERSAL = maxTraversal;
+    constructor(uint256 _maxTraversal, address[] memory _defaultUnlockers) {
+        MAX_TRAVERSAL = _maxTraversal;
         setDefaultUnlockers(_defaultUnlockers);
     }
 

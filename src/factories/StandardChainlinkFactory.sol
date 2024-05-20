@@ -35,8 +35,8 @@ contract OvalChainlink is MutableUnlockersController, ChainlinkSourceAdapter, Ch
  * mutability choices are desired.
  */
 contract StandardChainlinkFactory is Ownable, BaseFactory {
-    constructor(uint256 maxTraversal, address[] memory _defaultUnlockers)
-        BaseFactory(maxTraversal, _defaultUnlockers)
+    constructor(uint256 _maxTraversal, address[] memory _defaultUnlockers)
+        BaseFactory(_maxTraversal, _defaultUnlockers)
     {}
 
     /**

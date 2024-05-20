@@ -39,8 +39,8 @@ contract OvalPyth is MutableUnlockersController, PythSourceAdapter, ChainlinkDes
 contract StandardPythFactory is Ownable, BaseFactory {
     IPyth immutable pyth;
 
-    constructor(IPyth _pyth, uint256 maxTraversal, address[] memory _defaultUnlockers)
-        BaseFactory(maxTraversal, _defaultUnlockers)
+    constructor(IPyth _pyth, uint256 _maxTraversal, address[] memory _defaultUnlockers)
+        BaseFactory(_maxTraversal, _defaultUnlockers)
     {
         pyth = _pyth;
     }

@@ -14,12 +14,18 @@ import {IMedian} from "../interfaces/chronicle/IMedian.sol";
  * Chronicle price feeds and allow usage via the Chainlink interface.
  */
 contract OvalChronicle is MutableUnlockersController, ChronicleMedianSourceAdapter, ChainlinkDestinationAdapter {
-    constructor(IMedian source, address[] memory unlockers, uint256 lockWindow, uint256 maxTraversal, address owner)
-        ChronicleMedianSourceAdapter(source)
-        MutableUnlockersController(lockWindow, maxTraversal, unlockers)
+    constructor(
+        IMedian _source,
+        address[] memory _unlockers,
+        uint256 _lockWindow,
+        uint256 _maxTraversal,
+        address _owner
+    )
+        ChronicleMedianSourceAdapter(_source)
+        MutableUnlockersController(_lockWindow, _maxTraversal, _unlockers)
         ChainlinkDestinationAdapter(18)
     {
-        _transferOwnership(owner);
+        _transferOwnership(_owner);
     }
 }
 

@@ -14,18 +14,18 @@ import {BaseFactory} from "./BaseFactory.sol";
  */
 contract OvalCoinbase is MutableUnlockersController, CoinbaseSourceAdapter, ChainlinkDestinationAdapter {
     constructor(
-        IAggregatorV3SourceCoinbase source,
-        string memory ticker,
-        address[] memory unlockers,
-        uint256 lockWindow,
-        uint256 maxTraversal,
-        address owner
+        IAggregatorV3SourceCoinbase _source,
+        string memory _ticker,
+        address[] memory _unlockers,
+        uint256 _lockWindow,
+        uint256 _maxTraversal,
+        address _owner
     )
-        CoinbaseSourceAdapter(source, ticker)
-        MutableUnlockersController(lockWindow, maxTraversal, unlockers)
+        CoinbaseSourceAdapter(_source, _ticker)
+        MutableUnlockersController(_lockWindow, _maxTraversal, _unlockers)
         ChainlinkDestinationAdapter(18)
     {
-        _transferOwnership(owner);
+        _transferOwnership(_owner);
     }
 }
 
@@ -38,10 +38,10 @@ contract OvalCoinbase is MutableUnlockersController, CoinbaseSourceAdapter, Chai
 contract StandardCoinbaseFactory is Ownable, BaseFactory {
     IAggregatorV3SourceCoinbase immutable SOURCE;
 
-    constructor(IAggregatorV3SourceCoinbase source, uint256 maxTraversal, address[] memory _defaultUnlockers)
-        BaseFactory(maxTraversal, _defaultUnlockers)
+    constructor(IAggregatorV3SourceCoinbase _source, uint256 _maxTraversal, address[] memory _defaultUnlockers)
+        BaseFactory(_maxTraversal, _defaultUnlockers)
     {
-        SOURCE = source;
+        SOURCE = _source;
     }
 
     /**

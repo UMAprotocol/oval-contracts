@@ -24,7 +24,15 @@ contract TestBoundedUnionSource is BoundedUnionSourceAdapter {
         view
         returns (int256, uint256)
     {
-        return _selectBoundedPrice(cl, clT, cr, crT, py, pyT);
+        AllSourceData memory data = AllSourceData({
+            clAnswer: cl,
+            clTimestamp: clT,
+            crAnswer: cr,
+            crTimestamp: crT,
+            pyAnswer: py,
+            pyTimestamp: pyT
+        });
+        return _selectBoundedPrice(data);
     }
 
     function withinTolerance(int256 a, int256 b) public view returns (bool) {

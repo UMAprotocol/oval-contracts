@@ -61,9 +61,7 @@ abstract contract BoundedUnionSourceAdapter is
         returns (int256 answer, uint256 timestamp)
     {
         AllSourceData memory data = _getAllLatestSourceData();
-        return _selectBoundedPrice(
-            data.clAnswer, data.clTimestamp, data.crAnswer, data.crTimestamp, data.pyAnswer, data.pyTimestamp
-        );
+        return _selectBoundedPrice(data);
     }
 
     /**
@@ -106,9 +104,7 @@ abstract contract BoundedUnionSourceAdapter is
     {
         // In the happy path there have been no source updates since requested time, so we can return the latest data.
         AllSourceData memory data = _getAllLatestSourceData();
-        (int256 boundedAnswer, uint256 boundedTimestamp) = _selectBoundedPrice(
-            data.clAnswer, data.clTimestamp, data.crAnswer, data.crTimestamp, data.pyAnswer, data.pyTimestamp
-        );
+        (int256 boundedAnswer, uint256 boundedTimestamp) = _selectBoundedPrice(data);
         if (boundedTimestamp <= timestamp) return (boundedAnswer, boundedTimestamp, 1);
 
         // Chainlink has price history, so use tryLatestDataAt to pull the most recent price that satisfies the timestamp constraint.
@@ -125,9 +121,7 @@ abstract contract BoundedUnionSourceAdapter is
         );
 
         // Update bounded data with constrained source data.
-        (boundedAnswer, boundedTimestamp) = _selectBoundedPrice(
-            data.clAnswer, data.clTimestamp, data.crAnswer, data.crTimestamp, data.pyAnswer, data.pyTimestamp
-        );
+        (boundedAnswer, boundedTimestamp) = _selectBoundedPrice(data);
 
         // Return bounded data unless there is a newer snapshotted data that still satisfies time constraint.
         if (boundedTimestamp >= snapshot.timestamp || snapshot.timestamp > timestamp) {
@@ -147,13 +141,13 @@ abstract contract BoundedUnionSourceAdapter is
     }
 
     // Selects the appropriate price from the three sources based on the bounding tolerance and logic.
-    function _selectBoundedPrice(int256 cl, uint256 clT, int256 cr, uint256 crT, int256 py, uint256 pyT)
-        internal
-        view
-        returns (int256, uint256)
-    {
+    function _selectBoundedPrice(AllSourceData memory data) internal view returns (int256, uint256) {
         int256 newestVal = 0;
         uint256 newestT = 0;
+
+        // Unpack the data to short named variables for better code readability below.
+        (int256 cl, uint256 clT, int256 cr, uint256 crT, int256 py, uint256 pyT) =
+            (data.clAnswer, data.clTimestamp, data.crAnswer, data.crTimestamp, data.pyAnswer, data.pyTimestamp);
 
         // For each price, check if it is within tolerance of the other two. If so, check if it is the newest.
         if (pyT > newestT && (_withinTolerance(py, cr) || _withinTolerance(py, cl))) (newestVal, newestT) = (py, pyT);

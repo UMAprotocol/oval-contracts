@@ -18,7 +18,9 @@ contract TestedSourceAdapter is BoundedUnionSourceAdapter {
         uint256 boundingTolerance
     ) BoundedUnionSourceAdapter(chainlink, chronicle, pyth, pythPriceId, boundingTolerance) {}
 
-    function internalLatestData() public view override returns (int256, uint256) {}
+    function internalLatestData() public view override returns (int256, uint256, uint256) {}
+
+    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
 
     function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
 
@@ -56,19 +58,21 @@ contract BoundedUnionSourceAdapterTest is CommonTest {
         pyth.setLatestPrice(pythPrice, 0, -8, block.timestamp);
 
         // Check that the locked price (lockWindow ago) is the same as the latest Chainlink price.
-        (int256 lockedAnswer, uint256 lockedTimestamp) =
+        (int256 lockedAnswer, uint256 lockedTimestamp, uint256 lockedRoundId) =
             sourceAdapter.tryLatestDataAt(block.timestamp - lockWindow, maxTraversal);
         int256 standardizedChainlinkAnswer = chainlinkPrice * 10 ** (18 - 8);
         assertTrue(lockedAnswer == standardizedChainlinkAnswer);
         assertTrue(lockedTimestamp == chainlinkTime);
+        assertTrue(lockedRoundId == 1); // roundId not supported, hardcoded to 1.
 
         // Simulate unlock by snapshotting the current data and checking the price matches the latest Pyth price.
         sourceAdapter.snapshotData(); // In Oval this should get automatically called via unlockLatestValue.
-        (int256 unlockedAnswer, uint256 unlockedTimestamp) =
+        (int256 unlockedAnswer, uint256 unlockedTimestamp, uint256 unlockedRoundId) =
             sourceAdapter.tryLatestDataAt(block.timestamp, maxTraversal);
         int256 standardizedPythAnswer = int256(pythPrice) * 10 ** (18 - 8);
         assertTrue(unlockedAnswer == standardizedPythAnswer);
         assertTrue(unlockedTimestamp == block.timestamp);
+        assertTrue(unlockedRoundId == 1); // roundId not supported, hardcoded to 1.
 
         // Update Pyth price by additional 1% after 10 minutes.
         skip(600);
@@ -77,10 +81,11 @@ contract BoundedUnionSourceAdapterTest is CommonTest {
 
         // Check that the locked price (lockWindow ago) is the same as the prior Pyth price and not flipping back to the
         // old Chainlink price.
-        (int256 nextLockedAnswer, uint256 nextLockedTimestamp) =
+        (int256 nextLockedAnswer, uint256 nextLockedTimestamp, uint256 nextLockedRoundId) =
             sourceAdapter.tryLatestDataAt(block.timestamp - lockWindow, maxTraversal);
         assertTrue(nextLockedAnswer == standardizedPythAnswer);
         assertTrue(nextLockedTimestamp == unlockedTimestamp);
         assertTrue(nextLockedTimestamp > chainlinkTime);
+        assertTrue(nextLockedRoundId == 1); // roundId not supported, hardcoded to 1.
     }
 }

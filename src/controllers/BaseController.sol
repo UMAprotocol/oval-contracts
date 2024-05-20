@@ -12,7 +12,7 @@ abstract contract BaseController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private lockWindow_ = 60; // The lockWindow in seconds.
     uint256 private maxTraversal_ = 10; // The maximum number of rounds to traverse when looking for historical data.
-    uint256 private maxAge_ = 86400; // Default 1 day.
+    uint256 private maxAge_ = 1 days; // Default 1 day.
 
     mapping(address => bool) public unlockers;
 
@@ -99,6 +99,6 @@ abstract contract BaseController is Ownable, Oval {
      * @notice Max age of a historical price that can be used instead of the current price.
      */
     function maxAge() public view override returns (uint256) {
-        return maxTraversal_;
+        return maxAge_;
     }
 }

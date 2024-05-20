@@ -3,17 +3,12 @@ pragma solidity 0.8.17;
 
 import {CommonTest} from "../../Common.sol";
 
+import {BaseController} from "../../../src/controllers/BaseController.sol";
 import {ChronicleMedianSourceAdapter} from "../../../src/adapters/source-adapters/ChronicleMedianSourceAdapter.sol";
 import {IMedian} from "../../../src/interfaces/chronicle/IMedian.sol";
 
-contract TestedSourceAdapter is ChronicleMedianSourceAdapter {
+contract TestedSourceAdapter is ChronicleMedianSourceAdapter, BaseController {
     constructor(IMedian source) ChronicleMedianSourceAdapter(source) {}
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-    function lockWindow() public view virtual override returns (uint256) {}
-    function maxTraversal() public view virtual override returns (uint256) {}
-    function maxAge() public view virtual override returns (uint256) {}
 }
 
 contract ChronicleMedianSourceAdapterTest is CommonTest {

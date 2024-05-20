@@ -2,28 +2,18 @@
 pragma solidity 0.8.17;
 
 import {CommonTest} from "../../Common.sol";
+
+import {BaseController} from "../../../src/controllers/BaseController.sol";
 import {UnionSourceAdapter} from "../../../src/adapters/source-adapters/UnionSourceAdapter.sol";
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 import {IMedian} from "../../../src/interfaces/chronicle/IMedian.sol";
 import {IPyth} from "../../../src/interfaces/pyth/IPyth.sol";
 import {DecimalLib} from "../../../src/adapters/lib/DecimalLib.sol";
 
-contract TestedSourceAdapter is UnionSourceAdapter {
+contract TestedSourceAdapter is UnionSourceAdapter, BaseController {
     constructor(IAggregatorV3Source chainlink, IMedian chronicle, IPyth pyth, bytes32 pythPriceId)
         UnionSourceAdapter(chainlink, chronicle, pyth, pythPriceId)
     {}
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-
-    function maxTraversal() public view virtual override returns (uint256) {}
-
-    function maxAge() public view virtual override returns (uint256) {}
 }
 
 contract UnionSourceAdapterTest is CommonTest {
@@ -176,6 +166,7 @@ contract UnionSourceAdapterTest is CommonTest {
         // Fork to a block where chronicle was the newest.
         vm.createSelectFork("mainnet", targetChronicleBlock);
         uint256 targetTimestamp = block.timestamp;
+        sourceAdapter.setMaxAge(2 days); // Set max age to 2 days to disable this logic for the test.
         _whitelistOnChronicle();
 
         // Snapshotting union adapter should not affect historical lookups, but we do it just to prove it does not interfere.

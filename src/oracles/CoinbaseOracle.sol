@@ -93,7 +93,7 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
 
         require(timestamp > latestTimestamp, "Invalid timestamp.");
         require(recoverSigner(priceData, signature) == reporter, "Invalid signature.");
-        require(price < type(int256).max, "price too large");
+        require(price < uint256(type(int256).max), "Price exceeds max value.");
 
         priceDataStruct.lastRoundId++;
         priceDataStruct.roundAnswers[priceDataStruct.lastRoundId] = int256(price);

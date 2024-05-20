@@ -16,7 +16,6 @@ import {IAggregatorV3Source} from "../../src/interfaces/chainlink/IAggregatorV3S
 
 import {TestedSourceAdapter} from "../fork/adapters/ChainlinkSourceAdapter.sol";
 
-import "forge-std/console.sol";
 
 contract MockRedstonePayload is CommonTest {
     function getRedstonePayload(string memory priceFeed) public returns (bytes memory) {

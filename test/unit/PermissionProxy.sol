@@ -31,7 +31,9 @@ contract PermissionProxyTest is CommonTest {
     function testCallFailed() public {
         vm.prank(account1);
         vm.mockCallRevert(mockAddress, testValue, testCallData, "");
-        vm.expectRevert(abi.encodeWithSelector(PermissionProxy.CallFailed.selector, mockAddress, testValue, testCallData));
+        vm.expectRevert(
+            abi.encodeWithSelector(PermissionProxy.CallFailed.selector, mockAddress, testValue, testCallData)
+        );
         permissionProxy.execute(mockAddress, testValue, testCallData);
     }
 

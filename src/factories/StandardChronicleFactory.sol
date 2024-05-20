@@ -19,7 +19,7 @@ contract OvalChronicle is MutableUnlockersController, ChronicleMedianSourceAdapt
         MutableUnlockersController(lockWindow, maxTraversal, unlockers)
         ChainlinkDestinationAdapter(18)
     {
-        _transferOwnership(owner);   
+        _transferOwnership(owner);
     }
 }
 
@@ -30,14 +30,16 @@ contract OvalChronicle is MutableUnlockersController, ChronicleMedianSourceAdapt
  * needed if different mutability or interface choices are desired.
  */
 contract StandardChronicleFactory is Ownable, BaseFactory {
-    constructor(uint256 maxTraversal, address[] memory _defaultUnlockers) BaseFactory(maxTraversal, _defaultUnlockers) {}
+    constructor(uint256 maxTraversal, address[] memory _defaultUnlockers)
+        BaseFactory(maxTraversal, _defaultUnlockers)
+    {}
 
     /**
      * @notice Creates the Pyth Oval instance.
      * @param chronicle Chronicle source contract.
      * @param lockWindow the lockWindow used for this Oval instance. This is the length of the window
      * for the Oval auction to be run and, thus, the maximum time that prices will be delayed.
-    * @return oval deployed oval address.
+     * @return oval deployed oval address.
      */
     function create(IMedian chronicle, uint256 lockWindow) external returns (address oval) {
         oval = address(new OvalChronicle(chronicle, defaultUnlockers, lockWindow, MAX_TRAVERSAL, owner()));

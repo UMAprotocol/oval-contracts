@@ -16,7 +16,7 @@ contract PermissionProxy is Ownable, Multicall {
 
     event SenderSet(address sender, bool allowed);
 
-    mapping (address => bool) public senders;
+    mapping(address => bool) public senders;
 
     /**
      * @notice Enables or disables a sender.
@@ -28,22 +28,22 @@ contract PermissionProxy is Ownable, Multicall {
         emit SenderSet(sender, allowed);
     }
 
-        /**
+    /**
      * @notice Executes a call from this contract.
      * @dev Can only be called by an allowed sender.
      * @param target the address to call.
      * @param value the value to send.
      * @param callData the calldata to use for the call.
      * @return the data returned by the external call.
-     * 
+     *
      */
     function execute(address target, uint256 value, bytes memory callData) external returns (bytes memory) {
         if (!senders[msg.sender]) {
             revert SenderNotApproved(msg.sender);
         }
 
-        (bool success, bytes memory returnData) = target.call{ value: value }(callData);
-        
+        (bool success, bytes memory returnData) = target.call{value: value}(callData);
+
         if (!success) {
             revert CallFailed(target, value, callData);
         }

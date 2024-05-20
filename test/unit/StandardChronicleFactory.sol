@@ -20,9 +20,7 @@ contract StandardChronicleFactoryTest is CommonTest {
     }
 
     function testCreateMutableUnlockerOvalChronicle() public {
-        address created = factory.create(
-            mockSource, lockWindow
-        );
+        address created = factory.create(mockSource, lockWindow);
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
@@ -38,9 +36,7 @@ contract StandardChronicleFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address created = factory.create(
-            mockSource, lockWindow
-        );
+        address created = factory.create(mockSource, lockWindow);
         OvalChronicle instance = OvalChronicle(created);
 
         address newUnlocker = address(0x789);

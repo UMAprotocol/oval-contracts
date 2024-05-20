@@ -20,9 +20,7 @@ contract StandardPythFactoryTest is CommonTest {
     }
 
     function testCreateMutableUnlockerOvalPyth() public {
-        address created = factory.create(
-            bytes32(uint256(0x789)), lockWindow
-        );
+        address created = factory.create(bytes32(uint256(0x789)), lockWindow);
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
@@ -38,9 +36,7 @@ contract StandardPythFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address created = factory.create(
-            bytes32(uint256(0x789)), lockWindow
-        );
+        address created = factory.create(bytes32(uint256(0x789)), lockWindow);
         OvalPyth instance = OvalPyth(created);
 
         address newUnlocker = address(0x789);

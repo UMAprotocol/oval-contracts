@@ -14,12 +14,19 @@ import {IPyth} from "../interfaces/pyth/IPyth.sol";
  * Pyth price feeds and allow usage via the Chainlink interface.
  */
 contract OvalPyth is MutableUnlockersController, PythSourceAdapter, ChainlinkDestinationAdapter {
-    constructor(IPyth source, bytes32 pythPriceId, address[] memory unlockers, uint256 lockWindow, uint256 maxTraversal, address owner)
+    constructor(
+        IPyth source,
+        bytes32 pythPriceId,
+        address[] memory unlockers,
+        uint256 lockWindow,
+        uint256 maxTraversal,
+        address owner
+    )
         PythSourceAdapter(source, pythPriceId)
         MutableUnlockersController(lockWindow, maxTraversal, unlockers)
         ChainlinkDestinationAdapter(18)
     {
-        _transferOwnership(owner);   
+        _transferOwnership(owner);
     }
 }
 
@@ -32,7 +39,9 @@ contract OvalPyth is MutableUnlockersController, PythSourceAdapter, ChainlinkDes
 contract StandardPythFactory is Ownable, BaseFactory {
     IPyth immutable pyth;
 
-    constructor(IPyth _pyth, uint256 maxTraversal, address[] memory _defaultUnlockers) BaseFactory(maxTraversal, _defaultUnlockers) {
+    constructor(IPyth _pyth, uint256 maxTraversal, address[] memory _defaultUnlockers)
+        BaseFactory(maxTraversal, _defaultUnlockers)
+    {
         pyth = _pyth;
     }
 

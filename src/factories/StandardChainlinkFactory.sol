@@ -13,12 +13,18 @@ import {BaseFactory} from "./BaseFactory.sol";
  * Chainlink usage.
  */
 contract OvalChainlink is MutableUnlockersController, ChainlinkSourceAdapter, ChainlinkDestinationAdapter {
-    constructor(IAggregatorV3Source source, address[] memory unlockers, uint256 lockWindow, uint256 maxTraversal, address owner)
+    constructor(
+        IAggregatorV3Source source,
+        address[] memory unlockers,
+        uint256 lockWindow,
+        uint256 maxTraversal,
+        address owner
+    )
         ChainlinkSourceAdapter(source)
         MutableUnlockersController(lockWindow, maxTraversal, unlockers)
         ChainlinkDestinationAdapter(source.decimals())
     {
-        _transferOwnership(owner);   
+        _transferOwnership(owner);
     }
 }
 
@@ -29,7 +35,9 @@ contract OvalChainlink is MutableUnlockersController, ChainlinkSourceAdapter, Ch
  * mutability choices are desired.
  */
 contract StandardChainlinkFactory is Ownable, BaseFactory {
-    constructor(uint256 maxTraversal, address[] memory _defaultUnlockers) BaseFactory(maxTraversal, _defaultUnlockers) {}
+    constructor(uint256 maxTraversal, address[] memory _defaultUnlockers)
+        BaseFactory(maxTraversal, _defaultUnlockers)
+    {}
 
     /**
      * @notice Creates the Chainlink Oval instance.

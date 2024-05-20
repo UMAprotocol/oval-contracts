@@ -14,14 +14,21 @@ contract BaseFactory is Ownable {
     address[] public defaultUnlockers;
 
     event DefaultUnlockersSet(address[] defaultUnlockers);
-    event OvalDeployed(address indexed deployer, address indexed oval, uint256 indexed lockWindow, uint256 maxTraversal, address owner, address[] unlockers);
+    event OvalDeployed(
+        address indexed deployer,
+        address indexed oval,
+        uint256 indexed lockWindow,
+        uint256 maxTraversal,
+        address owner,
+        address[] unlockers
+    );
 
     constructor(uint256 maxTraversal, address[] memory _defaultUnlockers) {
         MAX_TRAVERSAL = maxTraversal;
         setDefaultUnlockers(_defaultUnlockers);
     }
 
-     /**
+    /**
      * @notice Enables the owner to set the default unlockers that will be passed to all Oval instances created by this
      * contract.
      * @dev This and the owner, itself, is the only mutable portion of this factory.

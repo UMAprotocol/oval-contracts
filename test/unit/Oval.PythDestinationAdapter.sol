@@ -24,6 +24,7 @@ contract OvalChronicleMedianDestinationAdapter is CommonTest {
 
     int256 newAnswer = 1900 * 1e18;
     uint256 newTimestamp = initialTimestamp + 1;
+    uint256 roundId = 1; // Pyth does not support roundId and has it hardcoded to 1.
 
     bytes32 testId = keccak256("testId");
     uint8 testDecimals = 8;
@@ -49,7 +50,9 @@ contract OvalChronicleMedianDestinationAdapter is CommonTest {
     function testGetPriceUnsafe() public {
         destinationAdapter.setOval(testId, testDecimals, testValidTimePeriod, IOval(OvalAddress));
         vm.mockCall(
-            OvalAddress, abi.encodeWithSelector(IOval.internalLatestData.selector), abi.encode(newAnswer, newTimestamp)
+            OvalAddress,
+            abi.encodeWithSelector(IOval.internalLatestData.selector),
+            abi.encode(newAnswer, newTimestamp, roundId)
         );
 
         IPyth.Price memory price = destinationAdapter.getPriceUnsafe(testId);
@@ -63,7 +66,9 @@ contract OvalChronicleMedianDestinationAdapter is CommonTest {
         destinationAdapter.setOval(testId, testDecimals, testValidTimePeriod, IOval(OvalAddress));
         uint256 timestamp = block.timestamp;
         vm.mockCall(
-            OvalAddress, abi.encodeWithSelector(IOval.internalLatestData.selector), abi.encode(newAnswer, timestamp)
+            OvalAddress,
+            abi.encodeWithSelector(IOval.internalLatestData.selector),
+            abi.encode(newAnswer, timestamp, roundId)
         );
 
         IPyth.Price memory price = destinationAdapter.getPrice(testId);
@@ -78,7 +83,9 @@ contract OvalChronicleMedianDestinationAdapter is CommonTest {
         vm.warp(newTimestamp + testValidTimePeriod + 1); // Warp to after the valid time period.
 
         vm.mockCall(
-            OvalAddress, abi.encodeWithSelector(IOval.internalLatestData.selector), abi.encode(newAnswer, newTimestamp)
+            OvalAddress,
+            abi.encodeWithSelector(IOval.internalLatestData.selector),
+            abi.encode(newAnswer, newTimestamp, roundId)
         );
 
         vm.expectRevert("Not within valid window");
@@ -90,7 +97,9 @@ contract OvalChronicleMedianDestinationAdapter is CommonTest {
         vm.warp(newTimestamp - 1); // Warp to before publish time.
 
         vm.mockCall(
-            OvalAddress, abi.encodeWithSelector(IOval.internalLatestData.selector), abi.encode(newAnswer, newTimestamp)
+            OvalAddress,
+            abi.encodeWithSelector(IOval.internalLatestData.selector),
+            abi.encode(newAnswer, newTimestamp, roundId)
         );
 
         IPyth.Price memory price = destinationAdapter.getPrice(testId);

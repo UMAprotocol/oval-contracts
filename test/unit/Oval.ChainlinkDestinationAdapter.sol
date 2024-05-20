@@ -25,6 +25,8 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
 
     TestOval oval;
 
+    uint256 latestPublishedRound;
+
     function setUp() public {
         vm.warp(initialTimestamp);
 
@@ -33,15 +35,21 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
         oval.setUnlocker(permissionedUnlocker, true);
         vm.stopPrank();
 
-        oval.publishRoundData(initialPrice, initialTimestamp);
+        publishRoundData(initialPrice, initialTimestamp);
+    }
+
+    function publishRoundData(int256 answer, uint256 timestamp) public {
+        oval.publishRoundData(answer, timestamp);
+        ++latestPublishedRound;
     }
 
     function verifyOvalMatchesOval() public {
-        (int256 latestAnswer, uint256 latestTimestamp) = oval.internalLatestData();
+        (int256 latestAnswer, uint256 latestTimestamp, uint256 latestRoundId) = oval.internalLatestData();
         assertTrue(
             latestAnswer / internalDecimalsToSourceDecimals == oval.latestAnswer()
                 && latestTimestamp == oval.latestTimestamp()
         );
+        assertTrue(latestRoundId == latestPublishedRound);
     }
 
     function syncOvalWithOval() public {
@@ -52,30 +60,68 @@ contract OvalChainlinkDestinationAdapter is CommonTest {
     }
 
     function testUpdatesWithinLockWindow() public {
-        // Publish an update to the mock source adapter.
-        oval.publishRoundData(newAnswer, newTimestamp);
-
         syncOvalWithOval();
-        assertTrue(oval.lastUnlockTime() == block.timestamp);
 
-        // Apply an unlock with no diff in source adapter.
-        uint256 unlockTimestamp = block.timestamp + 1 minutes;
-        vm.warp(unlockTimestamp);
+        // Advance time to within the lock window and update the source.
+        uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
+        vm.warp(beforeLockWindow);
+        publishRoundData(newAnswer, newTimestamp);
+
+        // Before updating, initial values from cache would be returned.
+        (int256 latestAnswer, uint256 latestTimestamp, uint256 latestRoundId) = oval.internalLatestData();
+        assertTrue(latestAnswer == initialPrice && latestTimestamp == initialTimestamp);
+        assertTrue(latestRoundId == latestPublishedRound - 1);
+
+        // After updating we should return the new values.
         vm.prank(permissionedUnlocker);
         oval.unlockLatestValue();
-
-        // Check that the update timestamp was unlocked and that the answer and timestamp are unchanged.
-        assertTrue(oval.lastUnlockTime() == unlockTimestamp);
         verifyOvalMatchesOval();
 
         (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
             oval.latestRoundData();
 
         // Check that Oval return the correct values scaled to the source oracle decimals.
-        assertTrue(roundId == 1);
+        assertTrue(roundId == latestPublishedRound);
         assertTrue(answer == newAnswer / internalDecimalsToSourceDecimals);
         assertTrue(startedAt == newTimestamp);
         assertTrue(updatedAt == newTimestamp);
-        assertTrue(answeredInRound == 1);
+        assertTrue(answeredInRound == latestPublishedRound);
+    }
+
+    function testReturnUninitializedRoundData() public {
+        // Advance time to within the lock window and update the source.
+        uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
+        vm.warp(beforeLockWindow);
+        publishRoundData(newAnswer, newTimestamp);
+
+        // Before updating, uninitialized values would be returned.
+        (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
+            oval.getRoundData(uint80(latestPublishedRound));
+        assertTrue(roundId == latestPublishedRound);
+        assertTrue(answer == 0);
+        assertTrue(startedAt == 0);
+        assertTrue(updatedAt == 0);
+        assertTrue(answeredInRound == latestPublishedRound);
+    }
+
+    function testReturnUnlockedRoundData() public {
+        // Advance time to within the lock window and update the source.
+        uint256 beforeLockWindow = block.timestamp + oval.lockWindow() - 1;
+        vm.warp(beforeLockWindow);
+        publishRoundData(newAnswer, newTimestamp);
+
+        // Unlock new round values.
+        vm.prank(permissionedUnlocker);
+        oval.unlockLatestValue();
+        verifyOvalMatchesOval();
+
+        // After unlock we should return the new values.
+        (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound) =
+            oval.getRoundData(uint80(latestPublishedRound));
+        assertTrue(roundId == latestPublishedRound);
+        assertTrue(answer == newAnswer / internalDecimalsToSourceDecimals);
+        assertTrue(startedAt == newTimestamp);
+        assertTrue(updatedAt == newTimestamp);
+        assertTrue(answeredInRound == latestPublishedRound);
     }
 }

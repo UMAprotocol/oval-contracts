@@ -71,13 +71,18 @@ jobs:
         with:
           version: "nightly-de33b6af53005037b463318d2628b5cfcaf39916"
 
+      - name: "Navigate to scripts and install dependencies"
+        run: |
+          cd scripts
+          yarn install
+
       - name: "Show the Foundry config"
         run: "forge config"
 
       - name: "Run the tests"
         env:
           RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
-        run: "forge test --fork-url $RPC_MAINNET"
+        run: "forge test --fork-url $RPC_MAINNET --ffi"
 
       - name: "Add test summary"
         run: |

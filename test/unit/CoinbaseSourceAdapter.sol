@@ -33,10 +33,10 @@ contract CoinbaseSourceAdapterTest is CommonTest {
     string public ticker = "ETH";
     uint256 public price = 3000e6;
 
-    function pushPrice(string memory ticker, uint256 price, uint256 timestamp) public {
+    function pushPrice(string memory ticker, uint256 priceToPush, uint256 timestamp) public {
         string memory kind = "price";
 
-        bytes memory encodedData = abi.encode(kind, timestamp, ticker, price);
+        bytes memory encodedData = abi.encode(kind, timestamp, ticker, priceToPush);
 
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(encodedData)));
 

@@ -344,6 +344,40 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@redstone-finance/oracles-smartweave-contracts@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@redstone-finance/oracles-smartweave-contracts/-/oracles-smartweave-contracts-0.5.1.tgz#fa68f76fb9258e4f037cde4f03b0ad87e8a8e8a2"
+  integrity sha512-1FwvgRzuAbQyLpeY9WJqViEp2mB3mNJWO78ogjGgCXGNeXsODoUTBWHRpS0GHpWoW8UKR+MC/t0ZSB+E0XsHCA==
+
+"@redstone-finance/protocol@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@redstone-finance/protocol/-/protocol-0.5.1.tgz#6fc47001ee386157a989d95c26dea6f2152b3422"
+  integrity sha512-MJ8BYuQ34xakfD7SA2OidtrLKDm5J5bZLrWZlsYj8hBs14h/vpFQsdbYJGbiIrN17aIb0c7rST0Q314T30BzJg==
+  dependencies:
+    ethers "^5.7.2"
+
+"@redstone-finance/sdk@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@redstone-finance/sdk/-/sdk-0.5.1.tgz#3676bf4ffce2081b841367f9c98c42651684a226"
+  integrity sha512-ElJioHHwJWSRUJqcOV+Iog6b501veZ5/QarfxPMaGGne6ZRKlXGDuj8dDglIZvkXwwSN2j6nCcU5km2RHdLN/Q==
+  dependencies:
+    "@redstone-finance/oracles-smartweave-contracts" "^0.5.1"
+    "@redstone-finance/protocol" "^0.5.1"
+    "@redstone-finance/utils" "^0.5.1"
+    axios "^1.6.2"
+    ethers "^5.7.2"
+
+"@redstone-finance/utils@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@redstone-finance/utils/-/utils-0.5.1.tgz#f91ca100ce1a1c870892db40249aebabaa0e411a"
+  integrity sha512-ui8scibt3mnHC9FjLVxT2k0GrDjlptIvAvNDCRsxm0jL+uttLgMmEp0kZkZ62aWFtSS0ORNDN8cER43yNNWWmQ==
+  dependencies:
+    axios "^1.6.2"
+    consola "^2.15.3"
+    decimal.js "^10.4.3"
+    ethers "^5.7.2"
+    zod "^3.22.4"
+
 "@typechain/ethers-v5@^11.1.2":
   version "11.1.2"
   resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-11.1.2.tgz#82510c1744f37a2f906b9e0532ac18c0b74ffe69"
@@ -404,6 +438,15 @@ axios@^1.5.1:
   integrity sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==
   dependencies:
     follow-redirects "^1.15.0"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
+axios@^1.6.2:
+  version "1.6.8"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.8.tgz#66d294951f5d988a00e87a0ffb955316a619ea66"
+  integrity sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==
+  dependencies:
+    follow-redirects "^1.15.6"
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
@@ -513,12 +556,22 @@ concat-map@0.0.1:
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==
 
+consola@^2.15.3:
+  version "2.15.3"
+  resolved "https://registry.yarnpkg.com/consola/-/consola-2.15.3.tgz#2e11f98d6a4be71ff72e0bdf07bd23e12cb61550"
+  integrity sha512-9vAdYbHj6x2fLKC4+oPH0kFzY/orMZyG2Aj+kNylHxKGJ/Ed4dpNyAQYwJOdqO4zdM7XpVHmyejQDcQHrnuXbw==
+
 debug@^4.3.1:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
   integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
   dependencies:
     ms "2.1.2"
+
+decimal.js@^10.4.3:
+  version "10.4.3"
+  resolved "https://registry.yarnpkg.com/decimal.js/-/decimal.js-10.4.3.tgz#1044092884d245d1b7f65725fa4ad4c6f781cc23"
+  integrity sha512-VBBaLc1MgL5XpzgIP7ny5Z6Nx3UrRkIViUkPUdtl9aya5amy3De1gsUUSB1g3+3sExYNjCAsAznmukyxCb1GRA==
 
 deep-extend@~0.6.0:
   version "0.6.0"
@@ -600,6 +653,11 @@ follow-redirects@^1.15.0:
   version "1.15.3"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.3.tgz#fe2f3ef2690afce7e82ed0b44db08165b207123a"
   integrity sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==
+
+follow-redirects@^1.15.6:
+  version "1.15.6"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.6.tgz#7f815c0cda4249c74ff09e95ef97c23b5fd0399b"
+  integrity sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==
 
 form-data@^4.0.0:
   version "4.0.0"
@@ -876,3 +934,8 @@ ws@7.4.6:
   version "7.4.6"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.6.tgz#5654ca8ecdeee47c33a9a4bf6d28e2be2980377c"
   integrity sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==
+
+zod@^3.22.4:
+  version "3.23.8"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
+  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==

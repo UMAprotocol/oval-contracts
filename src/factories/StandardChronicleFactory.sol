@@ -24,7 +24,7 @@ contract OvalChronicle is MutableUnlockersController, ChronicleMedianSourceAdapt
 }
 
 /**
- * @title StandardPythFactory is the recommended factory for use cases that want a Chronicle source and Chainlink
+ * @title StandardChronicleFactory is the recommended factory for use cases that want a Chronicle source and Chainlink
  * interface.
  * @dev This is the best factory for most use cases that need a Chronicle source, but there are other variants that may be
  * needed if different mutability or interface choices are desired.
@@ -35,7 +35,7 @@ contract StandardChronicleFactory is Ownable, BaseFactory {
     {}
 
     /**
-     * @notice Creates the Pyth Oval instance.
+     * @notice Creates the Chronicle Oval instance.
      * @param chronicle Chronicle source contract.
      * @param lockWindow the lockWindow used for this Oval instance. This is the length of the window
      * for the Oval auction to be run and, thus, the maximum time that prices will be delayed.

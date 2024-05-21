@@ -3,21 +3,12 @@ pragma solidity 0.8.17;
 
 import {CommonTest} from "../../Common.sol";
 
+import {BaseController} from "../../../src/controllers/BaseController.sol";
 import {PythSourceAdapter} from "../../../src/adapters/source-adapters/PythSourceAdapter.sol";
 import {IPyth} from "../../../src/interfaces/pyth/IPyth.sol";
 
-contract TestedSourceAdapter is PythSourceAdapter {
+contract TestedSourceAdapter is PythSourceAdapter, BaseController {
     constructor(IPyth source, bytes32 priceId) PythSourceAdapter(source, priceId) {}
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-
-    function maxTraversal() public view virtual override returns (uint256) {}
 }
 
 contract PythSourceAdapterTest is CommonTest {

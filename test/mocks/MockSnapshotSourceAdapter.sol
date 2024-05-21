@@ -40,8 +40,9 @@ abstract contract MockSnapshotSourceAdapter is DiamondRootOval {
         returns (int256, uint256, uint256)
     {
         (int256 latestAnswer, uint256 latestTimestamp) = MockSnapshotSourceAdapter.getLatestSourceData();
-        SnapshotSourceLib.Snapshot memory latestData =
-            SnapshotSourceLib._tryLatestDataAt(mockSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal);
+        SnapshotSourceLib.Snapshot memory latestData = SnapshotSourceLib._tryLatestDataAt(
+            mockSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
+        );
         return (latestData.answer, latestData.timestamp, 1);
     }
 

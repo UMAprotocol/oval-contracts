@@ -1,35 +1,40 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Oval} from "../Oval.sol";
 
 /**
- * @title ImmutableController providing an immutable controller.
- * @dev The benefit of this controller is two-fold:
- * 1. Permissioning and parameters _cannot_ be updated after deployment. Ownership doesn't exist.
- * 2. Because LOCK_WINDOW and MAX_TRAVERSAL are immutable, the read costs are much lower in the "hot" path (end
- *    oracle users).
+ * @title MutableUnlockersController is a controller that only allows unlockers to be change, but other params are immutable.
  */
-abstract contract ImmutableController is Oval {
+abstract contract MutableUnlockersController is Ownable, Oval {
+    // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private immutable LOCK_WINDOW; // The lockWindow in seconds.
     uint256 private immutable MAX_TRAVERSAL; // The maximum number of rounds to traverse when looking for historical data.
-    uint256 private immutable MAX_AGE;
 
     mapping(address => bool) public unlockers;
 
-    constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers, uint256 _maxAge) {
+    constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers) {
         LOCK_WINDOW = _lockWindow;
         MAX_TRAVERSAL = _maxTraversal;
-        MAX_AGE = _maxAge;
         for (uint256 i = 0; i < _unlockers.length; i++) {
-            unlockers[_unlockers[i]] = true;
-
-            emit UnlockerSet(_unlockers[i], true);
+            setUnlocker(_unlockers[i], true);
         }
 
         emit LockWindowSet(_lockWindow);
         emit MaxTraversalSet(_maxTraversal);
-        emit MaxAgeSet(_maxAge);
+    }
+
+    /**
+     * @notice Enables the owner to set the unlocker status of an address. Once set, the address can unlock Oval
+     * and by calling unlockLatestValue as part of an MEV-share auction.
+     * @param unlocker The address to set the unlocker status of.
+     * @param allowed The unlocker status to set.
+     */
+    function setUnlocker(address unlocker, bool allowed) public onlyOwner {
+        unlockers[unlocker] = allowed;
+
+        emit UnlockerSet(unlocker, allowed);
     }
 
     /**
@@ -59,12 +64,5 @@ abstract contract ImmutableController is Oval {
      */
     function maxTraversal() public view override returns (uint256) {
         return MAX_TRAVERSAL;
-    }
-
-    /**
-     * @notice Max age of a historical price that can be used instead of the current price.
-     */
-    function maxAge() public view override returns (uint256) {
-        return MAX_AGE;
     }
 }

@@ -69,8 +69,9 @@ abstract contract OSMSourceAdapter is DiamondRootOval {
         returns (int256, uint256, uint256)
     {
         (int256 latestAnswer, uint256 latestTimestamp) = OSMSourceAdapter.getLatestSourceData();
-        SnapshotSourceLib.Snapshot memory snapshot =
-            SnapshotSourceLib._tryLatestDataAt(osmSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal);
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            osmSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
+        );
         return (snapshot.answer, snapshot.timestamp, 1);
     }
 }

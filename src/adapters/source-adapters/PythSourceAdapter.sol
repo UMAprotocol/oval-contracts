@@ -70,8 +70,9 @@ abstract contract PythSourceAdapter is DiamondRootOval {
         returns (int256, uint256, uint256)
     {
         (int256 latestAnswer, uint256 latestTimestamp) = PythSourceAdapter.getLatestSourceData();
-        SnapshotSourceLib.Snapshot memory snapshot =
-            SnapshotSourceLib._tryLatestDataAt(pythSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal);
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            pythSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
+        );
         return (snapshot.answer, snapshot.timestamp, 1);
     }
 

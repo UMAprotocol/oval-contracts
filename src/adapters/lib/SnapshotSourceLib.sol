@@ -49,7 +49,8 @@ library SnapshotSourceLib {
         int256 latestAnswer,
         uint256 latestTimestamp,
         uint256 timestamp,
-        uint256 maxTraversal
+        uint256 maxTraversal,
+        uint256 maxAge
     ) internal view returns (Snapshot memory) {
         Snapshot memory latestData = Snapshot(latestAnswer, latestTimestamp);
         // In the happy path there have been no source updates since requested time, so we can return the latest data.
@@ -59,8 +60,8 @@ library SnapshotSourceLib {
         // Attempt traversing historical snapshot data. This might still be newer or uninitialized.
         Snapshot memory historicalData = _searchSnapshotAt(snapshots, timestamp, maxTraversal);
 
-        // Validate returned data. If it is uninitialized we fallback to returning the current latest round data.
-        if (historicalData.timestamp > 0) return historicalData;
+        // Validate returned data. If it is uninitialized or too old we fallback to returning the current latest round data.
+        if (historicalData.timestamp >= block.timestamp - maxAge) return historicalData;
         return latestData;
     }
 

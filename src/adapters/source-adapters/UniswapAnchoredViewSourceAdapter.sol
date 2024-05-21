@@ -101,7 +101,7 @@ abstract contract UniswapAnchoredViewSourceAdapter is DiamondRootOval {
     {
         (int256 latestAnswer, uint256 latestTimestamp) = UniswapAnchoredViewSourceAdapter.getLatestSourceData();
         SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
-            uniswapAnchoredViewSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal
+            uniswapAnchoredViewSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
         );
         return (snapshot.answer, snapshot.timestamp, 1);
     }

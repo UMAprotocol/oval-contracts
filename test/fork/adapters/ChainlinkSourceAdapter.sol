@@ -8,18 +8,8 @@ import {ChainlinkSourceAdapter} from "../../../src/adapters/source-adapters/Chai
 import {DecimalLib} from "../../../src/adapters/lib/DecimalLib.sol";
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 
-contract TestedSourceAdapter is ChainlinkSourceAdapter {
+contract TestedSourceAdapter is ChainlinkSourceAdapter, BaseController {
     constructor(IAggregatorV3Source source) ChainlinkSourceAdapter(source) {}
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-
-    function maxTraversal() public view virtual override returns (uint256) {}
 }
 
 contract ChainlinkSourceAdapterTest is CommonTest {
@@ -105,6 +95,33 @@ contract ChainlinkSourceAdapterTest is CommonTest {
         assertTrue(scaleChainlinkTo18(answer) == lookBackPrice);
         assertTrue(startedAt == lookBackTimestamp);
         assertTrue(uint256(roundId) == lookBackRoundId);
+    }
+
+    function testCorrectlyBoundsMaxLooBackByMaxAge() public {
+        // Value returned at 2 days should be the same as the value returned at 1 day as the max age is 1 day.
+        assertTrue(sourceAdapter.maxAge() == 1 days);
+        (int256 lookBackPricePastWindow, uint256 lookBackTimestampPastWindow, uint256 lookBackRoundIdPastWindow) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 2 days, 50);
+
+        (int256 lookBackPriceAtLimit, uint256 lookBackTimestampAtLimit, uint256 lookBackRoundIdAtLimit) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 1 days, 50);
+
+        assertTrue(lookBackPricePastWindow == lookBackPriceAtLimit);
+        assertTrue(lookBackTimestampPastWindow == lookBackTimestampAtLimit);
+        assertTrue(lookBackRoundIdPastWindow == lookBackRoundIdAtLimit);
+    }
+
+    function testExtendingMaxAgeCorrectlyExtendsWindowOfReturnedValue() public {
+        sourceAdapter.setMaxAge(2 days);
+        (int256 lookBackPricePastWindow, uint256 lookBackTimestampPastWindow, uint256 lookBackRoundIdPastWindow) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 3 days, 50);
+
+        (int256 lookBackPriceAtLimit, uint256 lookBackTimestampAtLimit, uint256 lookBackRoundIdAtLimit) =
+            sourceAdapter.tryLatestDataAt(block.timestamp - 2 days, 50);
+
+        assertTrue(lookBackPricePastWindow == lookBackPriceAtLimit);
+        assertTrue(lookBackTimestampPastWindow == lookBackTimestampAtLimit);
+        assertTrue(lookBackRoundIdPastWindow == lookBackRoundIdAtLimit);
     }
 
     function testNonHistoricalData() public {

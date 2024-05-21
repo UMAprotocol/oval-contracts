@@ -70,7 +70,7 @@ abstract contract ChronicleMedianSourceAdapter is DiamondRootOval {
     {
         (int256 latestAnswer, uint256 latestTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
         SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
-            chronicleMedianSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal
+            chronicleMedianSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
         );
         return (snapshot.answer, snapshot.timestamp, 1);
     }

@@ -117,7 +117,7 @@ abstract contract BoundedUnionSourceAdapter is
 
         // Bounded union prices could have been captured at snapshot that satisfies time constraint.
         SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
-            boundedUnionSnapshots, boundedAnswer, boundedTimestamp, timestamp, maxTraversal
+            boundedUnionSnapshots, boundedAnswer, boundedTimestamp, timestamp, maxTraversal, maxAge()
         );
 
         // Update bounded data with constrained source data.

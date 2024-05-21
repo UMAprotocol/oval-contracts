@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 import {CommonTest} from "../../Common.sol";
+
+import {BaseController} from "../../../src/controllers/BaseController.sol";
 import {BoundedUnionSourceAdapter} from "../../../src/adapters/source-adapters/BoundedUnionSourceAdapter.sol";
 import {IAggregatorV3Source} from "../../../src/interfaces/chainlink/IAggregatorV3Source.sol";
 import {IMedian} from "../../../src/interfaces/chronicle/IMedian.sol";
@@ -9,7 +11,7 @@ import {IPyth} from "../../../src/interfaces/pyth/IPyth.sol";
 import {MockPyth} from "../../mocks/MockPyth.sol";
 import {MockChronicleMedianSource} from "../../mocks/MockChronicleMedianSource.sol";
 
-contract TestedSourceAdapter is BoundedUnionSourceAdapter {
+contract TestedSourceAdapter is BoundedUnionSourceAdapter, BaseController {
     constructor(
         IAggregatorV3Source chainlink,
         IMedian chronicle,
@@ -17,16 +19,6 @@ contract TestedSourceAdapter is BoundedUnionSourceAdapter {
         bytes32 pythPriceId,
         uint256 boundingTolerance
     ) BoundedUnionSourceAdapter(chainlink, chronicle, pyth, pythPriceId, boundingTolerance) {}
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-
-    function maxTraversal() public view virtual override returns (uint256) {}
 }
 
 contract BoundedUnionSourceAdapterTest is CommonTest {

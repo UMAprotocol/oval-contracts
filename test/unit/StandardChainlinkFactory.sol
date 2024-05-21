@@ -13,6 +13,7 @@ contract StandardChainlinkFactoryTest is CommonTest {
     address[] unlockers;
     uint256 lockWindow = 300;
     uint256 maxTraversal = 15;
+    uint256 maxAge = 86400;
 
     function setUp() public {
         mockSource = new MockChainlinkV3Aggregator(8, 420);
@@ -21,7 +22,7 @@ contract StandardChainlinkFactoryTest is CommonTest {
     }
 
     function testCreateMutableUnlockerOvalChainlink() public {
-        address created = factory.create(IAggregatorV3Source(address(mockSource)), lockWindow);
+        address created = factory.create(IAggregatorV3Source(address(mockSource)), lockWindow, maxAge);
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
@@ -37,7 +38,7 @@ contract StandardChainlinkFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address created = factory.create(IAggregatorV3Source(address(mockSource)), lockWindow);
+        address created = factory.create(IAggregatorV3Source(address(mockSource)), lockWindow, maxAge);
         OvalChainlink instance = OvalChainlink(created);
 
         address newUnlocker = address(0x789);

@@ -12,6 +12,7 @@ contract StandardPythFactoryTest is CommonTest {
     address[] unlockers;
     uint256 lockWindow = 300;
     uint256 maxTraversal = 15;
+    uint256 maxAge = 86400;
 
     function setUp() public {
         mockSource = IPyth(address(0x456));
@@ -20,7 +21,7 @@ contract StandardPythFactoryTest is CommonTest {
     }
 
     function testCreateMutableUnlockerOvalPyth() public {
-        address created = factory.create(bytes32(uint256(0x789)), lockWindow);
+        address created = factory.create(bytes32(uint256(0x789)), lockWindow, maxAge);
 
         assertTrue(created != address(0)); // Check if the address is set, non-zero.
 
@@ -36,7 +37,7 @@ contract StandardPythFactoryTest is CommonTest {
     }
 
     function testOwnerCanChangeUnlockers() public {
-        address created = factory.create(bytes32(uint256(0x789)), lockWindow);
+        address created = factory.create(bytes32(uint256(0x789)), lockWindow, maxAge);
         OvalPyth instance = OvalPyth(created);
 
         address newUnlocker = address(0x789);

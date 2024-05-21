@@ -11,18 +11,22 @@ abstract contract MutableUnlockersController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
     uint256 private immutable LOCK_WINDOW; // The lockWindow in seconds.
     uint256 private immutable MAX_TRAVERSAL; // The maximum number of rounds to traverse when looking for historical data.
+    uint256 private immutable MAX_AGE; // Max age for a historical price used by Oval instead of the current price.
 
     mapping(address => bool) public unlockers;
 
-    constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers) {
+    constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers, uint256 _maxAge) {
         LOCK_WINDOW = _lockWindow;
         MAX_TRAVERSAL = _maxTraversal;
+        MAX_AGE = _maxAge;
+
         for (uint256 i = 0; i < _unlockers.length; i++) {
             setUnlocker(_unlockers[i], true);
         }
 
         emit LockWindowSet(_lockWindow);
         emit MaxTraversalSet(_maxTraversal);
+        emit MaxAgeSet(_maxAge);
     }
 
     /**
@@ -64,5 +68,12 @@ abstract contract MutableUnlockersController is Ownable, Oval {
      */
     function maxTraversal() public view override returns (uint256) {
         return MAX_TRAVERSAL;
+    }
+
+    /**
+     * @notice Max age of a historical price that can be used instead of the current price.
+     */
+    function maxAge() public view override returns (uint256) {
+        return MAX_AGE;
     }
 }

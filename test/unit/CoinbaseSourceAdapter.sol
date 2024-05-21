@@ -9,18 +9,8 @@ import {DecimalLib} from "../../src/adapters/lib/DecimalLib.sol";
 import {IAggregatorV3SourceCoinbase} from "../../src/interfaces/coinbase/IAggregatorV3SourceCoinbase.sol";
 import {CoinbaseOracle} from "../../src/oracles/CoinbaseOracle.sol";
 
-contract TestedSourceAdapter is CoinbaseSourceAdapter {
+contract TestedSourceAdapter is CoinbaseSourceAdapter, BaseController {
     constructor(IAggregatorV3SourceCoinbase source, string memory ticker) CoinbaseSourceAdapter(source, ticker) {}
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-
-    function maxTraversal() public view virtual override returns (uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
 }
 
 contract CoinbaseSourceAdapterTest is CommonTest {

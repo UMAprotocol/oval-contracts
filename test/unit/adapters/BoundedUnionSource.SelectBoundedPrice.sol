@@ -6,9 +6,10 @@ import {IMedian} from "../../../src/interfaces/chronicle/IMedian.sol";
 import {IPyth} from "../../../src/interfaces/pyth/IPyth.sol";
 
 import {BoundedUnionSourceAdapter} from "../../../src/adapters/source-adapters/BoundedUnionSourceAdapter.sol";
+import {BaseController} from "../../../src/controllers/BaseController.sol";
 import {CommonTest} from "../../Common.sol";
 
-contract TestBoundedUnionSource is BoundedUnionSourceAdapter {
+contract TestBoundedUnionSource is BoundedUnionSourceAdapter, BaseController {
     constructor(address chainlink)
         BoundedUnionSourceAdapter(
             IAggregatorV3Source(chainlink),
@@ -38,16 +39,6 @@ contract TestBoundedUnionSource is BoundedUnionSourceAdapter {
     function withinTolerance(int256 a, int256 b) public view returns (bool) {
         return _withinTolerance(a, b);
     }
-
-    function internalLatestData() public view override returns (int256, uint256, uint256) {}
-
-    function internalDataAtRound(uint256 roundId) public view override returns (int256, uint256) {}
-
-    function canUnlock(address caller, uint256 cachedLatestTimestamp) public view virtual override returns (bool) {}
-
-    function lockWindow() public view virtual override returns (uint256) {}
-    function maxTraversal() public view virtual override returns (uint256) {}
-    function maxAge() public view virtual override returns (uint256) {}
 }
 
 contract MinimalChainlinkAdapter {

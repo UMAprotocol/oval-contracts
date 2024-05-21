@@ -19,10 +19,11 @@ contract OvalCoinbase is MutableUnlockersController, CoinbaseSourceAdapter, Chai
         address[] memory _unlockers,
         uint256 _lockWindow,
         uint256 _maxTraversal,
+        uint256 _maxAge,
         address _owner
     )
         CoinbaseSourceAdapter(_source, _ticker)
-        MutableUnlockersController(_lockWindow, _maxTraversal, _unlockers)
+        MutableUnlockersController(_lockWindow, _maxTraversal, _unlockers, _maxAge)
         ChainlinkDestinationAdapter(18)
     {
         _transferOwnership(_owner);
@@ -49,10 +50,12 @@ contract StandardCoinbaseFactory is Ownable, BaseFactory {
      * @param ticker the Coinbase oracle's ticker.
      * @param lockWindow the lockWindow used for this Oval instance. This is the length of the window
      * for the Oval auction to be run and, thus, the maximum time that prices will be delayed.
+     * @param maxAge max age of a price that is used in place of the current price. If the only available price is
+     * older than this, OEV is not captured and the current price is provided.
      * @return oval deployed oval address.
      */
-    function create(string memory ticker, uint256 lockWindow) external returns (address oval) {
-        oval = address(new OvalCoinbase(SOURCE, ticker, defaultUnlockers, lockWindow, MAX_TRAVERSAL, owner()));
+    function create(string memory ticker, uint256 lockWindow, uint256 maxAge) external returns (address oval) {
+        oval = address(new OvalCoinbase(SOURCE, ticker, defaultUnlockers, lockWindow, MAX_TRAVERSAL, maxAge, owner()));
         emit OvalDeployed(msg.sender, oval, lockWindow, MAX_TRAVERSAL, owner(), defaultUnlockers);
     }
 }

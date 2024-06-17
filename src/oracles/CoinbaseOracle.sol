@@ -25,6 +25,14 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
     event PricePushed(string indexed ticker, uint80 indexed roundId, int256 price, uint256 timestamp);
 
     /**
+     * @notice Returns the address of the reporter.
+     * @return The address of the reporter.
+     */
+    function reporter() public view virtual returns (address) {
+        return 0xfCEAdAFab14d46e20144F48824d0C09B1a03F2BC;
+    }
+
+    /**
      * @notice Returns the latest round data for a given ticker.
      * @param ticker The ticker symbol to retrieve the data for.
      * @return roundId The ID of the latest round.
@@ -102,13 +110,5 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
         (bytes32 r, bytes32 s, uint8 v) = abi.decode(signature, (bytes32, bytes32, uint8));
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message)));
         return ecrecover(hash, v, r, s);
-    }
-
-    /**
-     * @notice Returns the address of the reporter.
-     * @return The address of the reporter.
-     */
-    function reporter() public view virtual returns (address) {
-        return 0xfCEAdAFab14d46e20144F48824d0C09B1a03F2BC;
     }
 }

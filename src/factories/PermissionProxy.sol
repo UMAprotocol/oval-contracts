@@ -5,9 +5,9 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Multicall} from "openzeppelin-contracts/contracts/utils/Multicall.sol";
 
 /**
- * @title PermissionProxy is a proxy that allows extends the permissions given to it to a configurable set
+ * @title PermissionProxy is a proxy that extends the permissions given to it to a configurable set
  * of addresses.
- * @dev The intended use case for this contract is to add this as a single unlocker to oval contracts, allowing the
+ * @dev The intended use case for this contract is to add this as a single unlocker to Oval contracts, allowing the
  * owner of this contract to delegate that permission to many different unlocker addresses.
  */
 contract PermissionProxy is Ownable, Multicall {

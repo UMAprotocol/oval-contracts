@@ -16,6 +16,8 @@ contract BaseControllerTest is CommonTest {
     TestBaseController baseController;
 
     function setUp() public {
+        vm.warp(lastUnlockTime);
+
         vm.startPrank(owner);
         baseController = new TestBaseController(18);
         baseController.setUnlocker(permissionedUnlocker, true);

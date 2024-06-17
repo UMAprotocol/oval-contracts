@@ -8,7 +8,7 @@ import {IAggregatorV3SourceCoinbase} from "../interfaces/coinbase/IAggregatorV3S
  * @notice A smart contract that serves as an oracle for price data reported by a designated reporter.
  */
 contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
-    address immutable reporter;
+    address public immutable reporter;
 
     uint8 public immutable decimals;
 

@@ -9,13 +9,17 @@ import {IAggregatorV3SourceCoinbase} from "../interfaces/coinbase/IAggregatorV3S
  */
 contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
     address immutable reporter;
-
     uint8 public immutable decimals;
+    string public dataKind;
+
+    struct RoundData {
+        int256 answer;
+        uint256 timestamp;
+    }
 
     struct PriceData {
         uint80 lastRoundId;
-        mapping(uint80 => int256) roundAnswers;
-        mapping(uint80 => uint256) roundTimestamps;
+        mapping(uint80 => RoundData) rounds;
     }
 
     mapping(string => PriceData) private prices;
@@ -25,11 +29,13 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
     /**
      * @notice Constructor to initialize the CoinbaseOracle contract.
      * @param _decimals The number of decimals in the reported price.
+     * @param _dataKind The kind of data that the oracle will report, expected to be "prices" but open for changes.
      * @param _reporter The address of the reporter allowed to push price data.
      */
-    constructor(uint8 _decimals, address _reporter) {
+    constructor(uint8 _decimals, string memory _dataKind, address _reporter) {
         decimals = _decimals;
         reporter = _reporter;
+        dataKind = _dataKind;
     }
 
     /**
@@ -37,19 +43,16 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
      * @param ticker The ticker symbol to retrieve the data for.
      * @return roundId The ID of the latest round.
      * @return answer The latest price.
-     * @return startedAt The timestamp when the round started.
-     * @return updatedAt The timestamp when the round was updated.
-     * @return answeredInRound The round ID in which the answer was computed.
+     * @return updatedAt The timestamp when the price was updated.
      */
     function latestRoundData(string memory ticker)
         external
         view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+        returns (uint80 roundId, int256 answer, uint256 updatedAt)
     {
         PriceData storage priceData = prices[ticker];
-        int256 latestAnswer = priceData.roundAnswers[priceData.lastRoundId];
-        uint256 latestTimestamp = priceData.roundTimestamps[priceData.lastRoundId];
-        return (priceData.lastRoundId, latestAnswer, latestTimestamp, latestTimestamp, priceData.lastRoundId);
+        RoundData storage latestRound = priceData.rounds[priceData.lastRoundId];
+        return (priceData.lastRoundId, latestRound.answer, latestRound.timestamp);
     }
 
     /**
@@ -58,46 +61,47 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
      * @param roundId The round ID to retrieve the data for.
      * @return roundId The ID of the round.
      * @return answer The price of the round.
-     * @return startedAt The timestamp when the round started.
      * @return updatedAt The timestamp when the round was updated.
-     * @return answeredInRound The round ID in which the answer was computed.
      */
     function getRoundData(string memory ticker, uint80 roundId)
         external
         view
-        returns (uint80, int256, uint256, uint256, uint80)
+        returns (uint80, int256 answer, uint256 updatedAt)
     {
         PriceData storage priceData = prices[ticker];
-        int256 latestAnswer = priceData.roundAnswers[roundId];
-        uint256 latestTimestamp = priceData.roundTimestamps[roundId];
-        return (roundId, latestAnswer, latestTimestamp, latestTimestamp, roundId);
+        RoundData memory round = priceData.rounds[roundId];
+        return (roundId, round.answer, round.timestamp);
     }
 
     /**
      * @notice Pushes a new price to the oracle for a given ticker.
-     * @param priceData The encoded price data.
+     * @dev Only the designated reporter can push price data.
+     * @param priceData The encoded price data, which contains the following fields:
+     * - kind: A string representing the kind of data (e.g., "prices").
+     * - timestamp: A uint256 representing the timestamp when the price was reported (e.g., 1629350000).
+     * - ticker: A string representing the ticker symbol of the asset (e.g., "BTC").
+     * - price: A uint256 representing the price of the asset (with 6 decimals).
      * @param signature The signature to verify the authenticity of the data.
      */
     function pushPrice(bytes memory priceData, bytes memory signature) external {
         (
-            string memory kind, // e.g. "price"
+            string memory kind, // e.g. "prices"
             uint256 timestamp, // e.g. 1629350000
             string memory ticker, // e.g. "BTC"
             uint256 price // 6 decimals
         ) = abi.decode(priceData, (string, uint256, string, uint256));
 
-        require(keccak256(abi.encodePacked(kind)) == keccak256(abi.encodePacked("price")), "Invalid kind.");
+        require(keccak256(abi.encodePacked(kind)) == keccak256(abi.encodePacked(dataKind)), "Invalid kind.");
 
         PriceData storage priceDataStruct = prices[ticker];
-        uint256 latestTimestamp = priceDataStruct.roundTimestamps[priceDataStruct.lastRoundId];
+        uint256 latestTimestamp = priceDataStruct.rounds[priceDataStruct.lastRoundId].timestamp;
 
         require(timestamp > latestTimestamp, "Invalid timestamp.");
         require(recoverSigner(priceData, signature) == reporter, "Invalid signature.");
-        require(price < uint256(type(int256).max), "Price exceeds max value.");
+        require(price <= uint256(type(int256).max), "Price exceeds max value.");
 
         priceDataStruct.lastRoundId++;
-        priceDataStruct.roundAnswers[priceDataStruct.lastRoundId] = int256(price);
-        priceDataStruct.roundTimestamps[priceDataStruct.lastRoundId] = timestamp;
+        priceDataStruct.rounds[priceDataStruct.lastRoundId] = RoundData(int256(price), timestamp);
 
         emit PricePushed(ticker, priceDataStruct.lastRoundId, int256(price), timestamp);
     }

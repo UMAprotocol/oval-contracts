@@ -28,6 +28,8 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
      * @param _reporter The address of the reporter allowed to push price data.
      */
     constructor(uint8 _decimals, address _reporter) {
+        require(_reporter != address(0), "Invalid reporter address");
+
         decimals = _decimals;
         reporter = _reporter;
     }

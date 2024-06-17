@@ -1,6 +1,7 @@
 import {CommonTest} from "../Common.sol";
 import {IAggregatorV3} from "src/interfaces/chainlink/IAggregatorV3.sol";
 import {CoinbaseOracle} from "src/oracles/CoinbaseOracle.sol";
+import {MockCoinbaseOracle} from "../mocks/MockCoinbaseOracle.sol";
 
 contract CoinbaseOracleTest is CommonTest {
     CoinbaseOracle public coinbaseOracle;
@@ -12,7 +13,7 @@ contract CoinbaseOracleTest is CommonTest {
     string[] public tickers;
 
     function setUp() public {
-        coinbaseOracle = new CoinbaseOracle(6, "prices", coinbaseProdReporter);
+        coinbaseOracle = new CoinbaseOracle();
         tickers = new string[](13);
         tickers[0] = "BTC";
         tickers[1] = "ETH";
@@ -31,11 +32,11 @@ contract CoinbaseOracleTest is CommonTest {
         (address _reporter, uint256 _reporterPk) = makeAddrAndKey("reporter");
         reporter = _reporter;
         reporterPk = _reporterPk;
-        coinbaseOracle = new CoinbaseOracle(6, "prices", reporter);
+        coinbaseOracle = new CoinbaseOracle();
     }
 
     function testPushPricesProd() public {
-        coinbaseOracle = new CoinbaseOracle(6, "prices", coinbaseProdReporter);
+        coinbaseOracle = new CoinbaseOracle();
         string[] memory fetchCommands = new string[](3);
         fetchCommands[0] = "node";
         fetchCommands[1] = "--no-warnings";
@@ -80,14 +81,17 @@ contract CoinbaseOracleTest is CommonTest {
     }
 
     function testPushPriceETH() public {
+        coinbaseOracle = new MockCoinbaseOracle(reporter);
         _testPushPrice(tickers[1], 10e6);
     }
 
     function testPushPriceBTC() public {
+        coinbaseOracle = new MockCoinbaseOracle(reporter);
         _testPushPrice(tickers[0], 20e6);
     }
 
     function testPushPriceBothTickers() public {
+        coinbaseOracle = new MockCoinbaseOracle(reporter);
         _testPushPrice(tickers[1], 10e6);
         vm.warp(block.timestamp + 1);
         _testPushPrice(tickers[0], 20e6);

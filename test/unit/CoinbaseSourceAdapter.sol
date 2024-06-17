@@ -8,6 +8,7 @@ import {CoinbaseSourceAdapter} from "../../src/adapters/source-adapters/Coinbase
 import {DecimalLib} from "../../src/adapters/lib/DecimalLib.sol";
 import {IAggregatorV3SourceCoinbase} from "../../src/interfaces/coinbase/IAggregatorV3SourceCoinbase.sol";
 import {CoinbaseOracle} from "../../src/oracles/CoinbaseOracle.sol";
+import {MockCoinbaseOracle} from "../mocks/MockCoinbaseOracle.sol";
 
 contract TestedSourceAdapter is CoinbaseSourceAdapter, BaseController {
     constructor(IAggregatorV3SourceCoinbase source, string memory ticker) CoinbaseSourceAdapter(source, ticker) {}
@@ -45,7 +46,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
         (address _reporter, uint256 _reporterPk) = makeAddrAndKey("reporter");
         reporter = _reporter;
         reporterPk = _reporterPk;
-        coinbase = new CoinbaseOracle(6, "prices", reporter);
+        coinbase = new MockCoinbaseOracle(reporter);
         sourceAdapter = new TestedSourceAdapter(IAggregatorV3SourceCoinbase(address(coinbase)), ticker);
 
         // Push some prices to the oracle
@@ -120,7 +121,7 @@ contract CoinbaseSourceAdapterTest is CommonTest {
     }
 
     function testNonHistoricalData() public {
-        coinbase = new CoinbaseOracle(6, "prices", reporter);
+        coinbase = new MockCoinbaseOracle(reporter);
         sourceAdapter = new TestedSourceAdapter(IAggregatorV3SourceCoinbase(address(coinbase)), ticker);
 
         // Push only one price to the oracle

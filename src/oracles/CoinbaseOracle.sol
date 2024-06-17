@@ -8,9 +8,7 @@ import {IAggregatorV3SourceCoinbase} from "../interfaces/coinbase/IAggregatorV3S
  * @notice A smart contract that serves as an oracle for price data reported by a designated reporter.
  */
 contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
-    address immutable reporter;
-    uint8 public immutable decimals;
-    string public dataKind;
+    uint8 public immutable decimals = 6;
 
     struct RoundData {
         int256 answer;
@@ -22,21 +20,9 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
         mapping(uint80 => RoundData) rounds;
     }
 
-    mapping(string => PriceData) private prices;
+    mapping(string => PriceData) internal prices;
 
     event PricePushed(string indexed ticker, uint80 indexed roundId, int256 price, uint256 timestamp);
-
-    /**
-     * @notice Constructor to initialize the CoinbaseOracle contract.
-     * @param _decimals The number of decimals in the reported price.
-     * @param _dataKind The kind of data that the oracle will report, expected to be "prices" but open for changes.
-     * @param _reporter The address of the reporter allowed to push price data.
-     */
-    constructor(uint8 _decimals, string memory _dataKind, address _reporter) {
-        decimals = _decimals;
-        reporter = _reporter;
-        dataKind = _dataKind;
-    }
 
     /**
      * @notice Returns the latest round data for a given ticker.
@@ -91,13 +77,13 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
             uint256 price // 6 decimals
         ) = abi.decode(priceData, (string, uint256, string, uint256));
 
-        require(keccak256(abi.encodePacked(kind)) == keccak256(abi.encodePacked(dataKind)), "Invalid kind.");
+        require(keccak256(abi.encodePacked(kind)) == keccak256(abi.encodePacked("prices")), "Invalid kind.");
 
         PriceData storage priceDataStruct = prices[ticker];
         uint256 latestTimestamp = priceDataStruct.rounds[priceDataStruct.lastRoundId].timestamp;
 
         require(timestamp > latestTimestamp, "Invalid timestamp.");
-        require(recoverSigner(priceData, signature) == reporter, "Invalid signature.");
+        require(recoverSigner(priceData, signature) == reporter(), "Invalid signature.");
         require(price <= uint256(type(int256).max), "Price exceeds max value.");
 
         priceDataStruct.lastRoundId++;
@@ -116,5 +102,13 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
         (bytes32 r, bytes32 s, uint8 v) = abi.decode(signature, (bytes32, bytes32, uint8));
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(message)));
         return ecrecover(hash, v, r, s);
+    }
+
+    /**
+     * @notice Returns the address of the reporter.
+     * @return The address of the reporter.
+     */
+    function reporter() public view virtual returns (address) {
+        return 0xfCEAdAFab14d46e20144F48824d0C09B1a03F2BC;
     }
 }

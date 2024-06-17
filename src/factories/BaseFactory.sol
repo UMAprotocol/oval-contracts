@@ -24,6 +24,8 @@ contract BaseFactory is Ownable {
     );
 
     constructor(uint256 _maxTraversal, address[] memory _defaultUnlockers) {
+        require(_maxTraversal > 0, "Max traversal must be > 0");
+
         MAX_TRAVERSAL = _maxTraversal;
         setDefaultUnlockers(_defaultUnlockers);
     }

@@ -23,6 +23,8 @@ abstract contract BaseController is Ownable, Oval {
      * @param allowed The unlocker status to set.
      */
     function setUnlocker(address unlocker, bool allowed) public onlyOwner {
+        require(unlockers[unlocker] != allowed, "Unlocker not changed");
+
         unlockers[unlocker] = allowed;
 
         emit UnlockerSet(unlocker, allowed);

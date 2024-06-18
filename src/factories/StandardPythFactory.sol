@@ -38,12 +38,12 @@ contract OvalPyth is MutableUnlockersController, PythSourceAdapter, ChainlinkDes
  * needed if different mutability or interface choices are desired.
  */
 contract StandardPythFactory is Ownable, BaseFactory {
-    IPyth public immutable pyth;
+    IPyth public immutable PYTH;
 
     constructor(IPyth _pyth, uint256 _maxTraversal, address[] memory _defaultUnlockers)
         BaseFactory(_maxTraversal, _defaultUnlockers)
     {
-        pyth = _pyth;
+        PYTH = _pyth;
     }
 
     /**
@@ -56,7 +56,7 @@ contract StandardPythFactory is Ownable, BaseFactory {
      * @return oval deployed oval address.
      */
     function create(bytes32 pythPriceId, uint256 lockWindow, uint256 maxAge) external returns (address oval) {
-        oval = address(new OvalPyth(pyth, pythPriceId, defaultUnlockers, lockWindow, MAX_TRAVERSAL, maxAge, owner()));
+        oval = address(new OvalPyth(PYTH, pythPriceId, defaultUnlockers, lockWindow, MAX_TRAVERSAL, maxAge, owner()));
         emit OvalDeployed(msg.sender, oval, lockWindow, MAX_TRAVERSAL, owner(), defaultUnlockers);
     }
 }

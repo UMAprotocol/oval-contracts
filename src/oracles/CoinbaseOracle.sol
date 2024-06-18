@@ -8,7 +8,7 @@ import {IAggregatorV3SourceCoinbase} from "../interfaces/coinbase/IAggregatorV3S
  * @notice A smart contract that serves as an oracle for price data reported by a designated reporter.
  */
 contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
-    address public reporter = 0xfCEAdAFab14d46e20144F48824d0C09B1a03F2BC;
+    address public immutable REPORTER = 0xfCEAdAFab14d46e20144F48824d0C09B1a03F2BC;
     uint8 public immutable DECIMALS = 6;
     bytes32 public immutable KIND_HASH = keccak256(abi.encodePacked("prices"));
 
@@ -32,6 +32,14 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
      */
     function decimals() external pure returns (uint8) {
         return DECIMALS;
+    }
+
+    /**
+     * @notice Returns the address of the reporter.
+     * @return The address of the reporter.
+     */
+    function reporter() public view virtual returns (address) {
+        return REPORTER;
     }
 
     /**
@@ -93,7 +101,7 @@ contract CoinbaseOracle is IAggregatorV3SourceCoinbase {
         uint256 latestTimestamp = priceDataStruct.rounds[priceDataStruct.lastRoundId].timestamp;
 
         require(timestamp > latestTimestamp, "Invalid timestamp.");
-        require(recoverSigner(priceData, signature) == reporter, "Invalid signature.");
+        require(recoverSigner(priceData, signature) == reporter(), "Invalid signature.");
         require(price <= uint256(type(int256).max), "Price exceeds max value.");
 
         priceDataStruct.lastRoundId++;

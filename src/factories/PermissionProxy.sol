@@ -5,14 +5,14 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Multicall} from "openzeppelin-contracts/contracts/utils/Multicall.sol";
 
 /**
- * @title PermissionProxy is a proxy that allows extends the permissions given to it to a configurable set
+ * @title PermissionProxy is a proxy that extends the permissions given to it to a configurable set
  * of addresses.
- * @dev The intended use case for this contract is to add this as a single unlocker to oval contracts, allowing the
+ * @dev The intended use case for this contract is to add this as a single unlocker to Oval contracts, allowing the
  * owner of this contract to delegate that permission to many different unlocker addresses.
  */
 contract PermissionProxy is Ownable, Multicall {
     error SenderNotApproved(address sender);
-    error CallFailed(address target, uint256 value, bytes callData);
+    error CallFailed(address target, bytes callData);
 
     event SenderSet(address sender, bool allowed);
 
@@ -32,20 +32,19 @@ contract PermissionProxy is Ownable, Multicall {
      * @notice Executes a call from this contract.
      * @dev Can only be called by an allowed sender.
      * @param target the address to call.
-     * @param value the value to send.
      * @param callData the calldata to use for the call.
      * @return the data returned by the external call.
      *
      */
-    function execute(address target, uint256 value, bytes memory callData) external returns (bytes memory) {
+    function execute(address target, bytes memory callData) external returns (bytes memory) {
         if (!senders[msg.sender]) {
             revert SenderNotApproved(msg.sender);
         }
 
-        (bool success, bytes memory returnData) = target.call{value: value}(callData);
+        (bool success, bytes memory returnData) = target.call{value: 0}(callData);
 
         if (!success) {
-            revert CallFailed(target, value, callData);
+            revert CallFailed(target, callData);
         }
 
         return returnData;

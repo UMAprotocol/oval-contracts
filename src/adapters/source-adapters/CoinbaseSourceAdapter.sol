@@ -56,7 +56,7 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
      * @return updatedAt The timestamp of the answer.
      */
     function getLatestSourceData() public view virtual override returns (int256, uint256) {
-        (, int256 sourceAnswer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData(TICKER);
+        (, int256 sourceAnswer, uint256 updatedAt) = COINBASE_SOURCE.latestRoundData(TICKER);
         return (DecimalLib.convertDecimals(sourceAnswer, SOURCE_DECIMALS, 18), updatedAt);
     }
 
@@ -73,7 +73,7 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
     // Tries getting the latest data as of the requested timestamp. If this is not possible,
     // returns the earliest data available past the requested timestamp considering the maxTraversal limitations.
     function _tryLatestRoundDataAt(uint256 timestamp, uint256 maxTraversal) internal view returns (int256, uint256) {
-        (uint80 roundId, int256 answer,, uint256 updatedAt,) = COINBASE_SOURCE.latestRoundData(TICKER);
+        (uint80 roundId, int256 answer, uint256 updatedAt) = COINBASE_SOURCE.latestRoundData(TICKER);
 
         // If the latest update is older than or equal to the requested timestamp, return the latest data.
         if (updatedAt <= timestamp) {
@@ -83,8 +83,8 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
         // Attempt traversing historical round data backwards from roundId.
         (int256 historicalAnswer, uint256 historicalUpdatedAt) = _searchRoundDataAt(timestamp, roundId, maxTraversal);
 
-        // Validate returned data. If it is uninitialized, fall back to returning the current latest round data.
-        if (historicalUpdatedAt > 0) {
+        // Validate returned data. If it is uninitialized or too old, fall back to returning the current latest round data.
+        if (historicalUpdatedAt > block.timestamp - maxAge()) {
             return (historicalAnswer, historicalUpdatedAt);
         }
 
@@ -101,7 +101,7 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
         int256 answer;
         uint256 updatedAt;
         for (uint80 i = 1; i <= maxTraversal && latestRoundId >= i; i++) {
-            (, answer,, updatedAt,) = COINBASE_SOURCE.getRoundData(TICKER, latestRoundId - i);
+            (, answer, updatedAt) = COINBASE_SOURCE.getRoundData(TICKER, latestRoundId - i);
             if (updatedAt <= timestamp) {
                 return (answer, updatedAt);
             }

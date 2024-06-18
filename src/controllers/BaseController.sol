@@ -23,6 +23,8 @@ abstract contract BaseController is Ownable, Oval {
      * @param allowed The unlocker status to set.
      */
     function setUnlocker(address unlocker, bool allowed) public onlyOwner {
+        require(unlockers[unlocker] != allowed, "Unlocker not changed");
+
         unlockers[unlocker] = allowed;
 
         emit UnlockerSet(unlocker, allowed);
@@ -46,13 +48,13 @@ abstract contract BaseController is Ownable, Oval {
      * @param newLockWindow The lockWindow to set.
      */
     function setLockWindow(uint256 newLockWindow) public onlyOwner {
+        require(maxAge() > newLockWindow, "Max age not above lock window");
+
         (int256 currentAnswer, uint256 currentTimestamp,) = internalLatestData();
 
         lockWindow_ = newLockWindow;
 
-        // Compare Oval results so that change in lock window does not change returned data.
-        (int256 newAnswer, uint256 newTimestamp,) = internalLatestData();
-        require(currentAnswer == newAnswer && currentTimestamp == newTimestamp, "Must unlock first");
+        _checkDataNotChanged(currentAnswer, currentTimestamp);
 
         emit LockWindowSet(newLockWindow);
     }
@@ -62,7 +64,13 @@ abstract contract BaseController is Ownable, Oval {
      * @param newMaxTraversal The maxTraversal to set.
      */
     function setMaxTraversal(uint256 newMaxTraversal) public onlyOwner {
+        require(newMaxTraversal > 0, "Max traversal must be > 0");
+
+        (int256 currentAnswer, uint256 currentTimestamp,) = internalLatestData();
+
         maxTraversal_ = newMaxTraversal;
+
+        _checkDataNotChanged(currentAnswer, currentTimestamp);
 
         emit MaxTraversalSet(newMaxTraversal);
     }
@@ -72,7 +80,13 @@ abstract contract BaseController is Ownable, Oval {
      * @param newMaxAge The maxAge to set
      */
     function setMaxAge(uint256 newMaxAge) public onlyOwner {
+        require(newMaxAge > lockWindow(), "Max age not above lock window");
+
+        (int256 currentAnswer, uint256 currentTimestamp,) = internalLatestData();
+
         maxAge_ = newMaxAge;
+
+        _checkDataNotChanged(currentAnswer, currentTimestamp);
 
         emit MaxAgeSet(newMaxAge);
     }
@@ -100,5 +114,11 @@ abstract contract BaseController is Ownable, Oval {
      */
     function maxAge() public view override returns (uint256) {
         return maxAge_;
+    }
+
+    // Helper function to ensure that changing controller parameters does not change the returned data.
+    function _checkDataNotChanged(int256 currentAnswer, uint256 currentTimestamp) internal view {
+        (int256 newAnswer, uint256 newTimestamp,) = internalLatestData();
+        require(currentAnswer == newAnswer && currentTimestamp == newTimestamp, "Must unlock first");
     }
 }

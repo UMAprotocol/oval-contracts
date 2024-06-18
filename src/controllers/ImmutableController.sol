@@ -18,6 +18,9 @@ abstract contract ImmutableController is Oval {
     mapping(address => bool) public unlockers;
 
     constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers, uint256 _maxAge) {
+        require(_maxAge > _lockWindow, "Max age not above lock window");
+        require(_maxTraversal > 0, "Max traversal must be > 0");
+
         LOCK_WINDOW = _lockWindow;
         MAX_TRAVERSAL = _maxTraversal;
         MAX_AGE = _maxAge;

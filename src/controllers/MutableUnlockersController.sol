@@ -5,7 +5,7 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Oval} from "../Oval.sol";
 
 /**
- * @title MutableUnlockersController is a controller that only allows unlockers to be change, but other params are immutable.
+ * @title MutableUnlockersController is a controller that only allows unlockers to be changed, but other params are immutable.
  */
 abstract contract MutableUnlockersController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.
@@ -16,6 +16,9 @@ abstract contract MutableUnlockersController is Ownable, Oval {
     mapping(address => bool) public unlockers;
 
     constructor(uint256 _lockWindow, uint256 _maxTraversal, address[] memory _unlockers, uint256 _maxAge) {
+        require(_maxAge > _lockWindow, "Max age not above lock window");
+        require(_maxTraversal > 0, "Max traversal must be > 0");
+
         LOCK_WINDOW = _lockWindow;
         MAX_TRAVERSAL = _maxTraversal;
         MAX_AGE = _maxAge;
@@ -36,6 +39,8 @@ abstract contract MutableUnlockersController is Ownable, Oval {
      * @param allowed The unlocker status to set.
      */
     function setUnlocker(address unlocker, bool allowed) public onlyOwner {
+        require(unlockers[unlocker] != allowed, "Unlocker not changed");
+
         unlockers[unlocker] = allowed;
 
         emit UnlockerSet(unlocker, allowed);

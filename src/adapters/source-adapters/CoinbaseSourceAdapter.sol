@@ -83,8 +83,8 @@ abstract contract CoinbaseSourceAdapter is DiamondRootOval {
         // Attempt traversing historical round data backwards from roundId.
         (int256 historicalAnswer, uint256 historicalUpdatedAt) = _searchRoundDataAt(timestamp, roundId, maxTraversal);
 
-        // Validate returned data. If it is uninitialized, fall back to returning the current latest round data.
-        if (historicalUpdatedAt > 0) {
+        // Validate returned data. If it is uninitialized or too old, fall back to returning the current latest round data.
+        if (historicalUpdatedAt > block.timestamp - maxAge()) {
             return (historicalAnswer, historicalUpdatedAt);
         }
 

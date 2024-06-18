@@ -8,7 +8,6 @@ contract PermissionProxyTest is CommonTest {
     PermissionProxy permissionProxy;
     address mockAddress = address(0xdeadbeef);
     bytes testCallData = abi.encodeWithSignature("foo()");
-    uint256 testValue = 1;
     bytes returnData = abi.encode(uint256(7));
 
     function setUp() public {
@@ -19,22 +18,22 @@ contract PermissionProxyTest is CommonTest {
     function testSenderPermissions() public {
         vm.prank(account2);
         vm.expectRevert(abi.encodeWithSelector(PermissionProxy.SenderNotApproved.selector, account2));
-        permissionProxy.execute(mockAddress, testValue, testCallData);
+        permissionProxy.execute(mockAddress, testCallData);
 
         vm.prank(account1);
-        vm.mockCall(mockAddress, testValue, testCallData, abi.encode(uint256(7)));
-        vm.expectCall(mockAddress, testValue, testCallData);
-        bytes memory actualReturnValue = permissionProxy.execute(mockAddress, testValue, testCallData);
+        vm.mockCall(mockAddress, testCallData, abi.encode(uint256(7)));
+        vm.expectCall(mockAddress, testCallData);
+        bytes memory actualReturnValue = permissionProxy.execute(mockAddress, testCallData);
         assertEq0(actualReturnValue, returnData);
     }
 
     function testCallFailed() public {
         vm.prank(account1);
-        vm.mockCallRevert(mockAddress, testValue, testCallData, "");
+        vm.mockCallRevert(mockAddress, testCallData, "");
         vm.expectRevert(
-            abi.encodeWithSelector(PermissionProxy.CallFailed.selector, mockAddress, testValue, testCallData)
+            abi.encodeWithSelector(PermissionProxy.CallFailed.selector, mockAddress, testCallData)
         );
-        permissionProxy.execute(mockAddress, testValue, testCallData);
+        permissionProxy.execute(mockAddress, testCallData);
     }
 
     function testSetSender() public {

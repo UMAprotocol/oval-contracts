@@ -12,7 +12,7 @@ import {Multicall} from "openzeppelin-contracts/contracts/utils/Multicall.sol";
  */
 contract PermissionProxy is Ownable, Multicall {
     error SenderNotApproved(address sender);
-    error CallFailed(address target, uint256 value, bytes callData);
+    error CallFailed(address target, bytes callData);
 
     event SenderSet(address sender, bool allowed);
 
@@ -32,20 +32,19 @@ contract PermissionProxy is Ownable, Multicall {
      * @notice Executes a call from this contract.
      * @dev Can only be called by an allowed sender.
      * @param target the address to call.
-     * @param value the value to send.
      * @param callData the calldata to use for the call.
      * @return the data returned by the external call.
      *
      */
-    function execute(address target, uint256 value, bytes memory callData) external returns (bytes memory) {
+    function execute(address target, bytes memory callData) external returns (bytes memory) {
         if (!senders[msg.sender]) {
             revert SenderNotApproved(msg.sender);
         }
 
-        (bool success, bytes memory returnData) = target.call{value: value}(callData);
+        (bool success, bytes memory returnData) = target.call{value: 0}(callData);
 
         if (!success) {
-            revert CallFailed(target, value, callData);
+            revert CallFailed(target, callData);
         }
 
         return returnData;

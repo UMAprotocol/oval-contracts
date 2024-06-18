@@ -165,9 +165,9 @@ contract UnionSourceAdapterTest is CommonTest {
     function testLookbackDropChronicle() public {
         // Fork to a block where chronicle was the newest.
         vm.createSelectFork("mainnet", targetChronicleBlock);
+        _whitelistOnChronicle();
         uint256 targetTimestamp = block.timestamp;
         sourceAdapter.setMaxAge(2 days); // Set max age to 2 days to disable this logic for the test.
-        _whitelistOnChronicle();
 
         // Snapshotting union adapter should not affect historical lookups, but we do it just to prove it does not interfere.
         sourceAdapter.snapshotData();

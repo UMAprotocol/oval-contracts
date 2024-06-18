@@ -5,7 +5,7 @@ import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Oval} from "../Oval.sol";
 
 /**
- * @title MutableUnlockersController is a controller that only allows unlockers to be change, but other params are immutable.
+ * @title MutableUnlockersController is a controller that only allows unlockers to be changed, but other params are immutable.
  */
 abstract contract MutableUnlockersController is Ownable, Oval {
     // these don't need to be public since they can be accessed via the accessor functions below.

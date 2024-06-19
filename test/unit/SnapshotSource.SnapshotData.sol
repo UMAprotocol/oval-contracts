@@ -5,7 +5,7 @@ import {CommonTest} from "../Common.sol";
 import {MockSnapshotSourceAdapter} from "../mocks/MockSnapshotSourceAdapter.sol";
 import {Oval} from "../../src/Oval.sol";
 import {BaseController} from "../../src/controllers/BaseController.sol";
-import "forge-std/console.sol";
+import {SnapshotSourceLib} from "../../src/adapters/lib/SnapshotSourceLib.sol";
 
 contract TestSnapshotSource is MockSnapshotSourceAdapter, Oval, BaseController {}
 
@@ -22,10 +22,10 @@ contract SnapshotSourceSnapshotDataTest is CommonTest {
 
         // Verify that the snapshotting did not store any data (snapshots array is empty).
         vm.expectRevert();
-        snapshotSource.snapshots(0);
+        snapshotSource.mockSnapshots(0);
 
         // latestSnapshotData should return uninitialized data.
-        MockSnapshotSourceAdapter.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
+        SnapshotSourceLib.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
         assertTrue(snapshot.answer == 0 && snapshot.timestamp == 0);
     }
 
@@ -35,7 +35,7 @@ contract SnapshotSourceSnapshotDataTest is CommonTest {
         snapshotSource.snapshotData();
 
         // Verify snapshotted data.
-        MockSnapshotSourceAdapter.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
+        SnapshotSourceLib.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
         assertTrue(snapshot.answer == 100 && snapshot.timestamp == 1000);
     }
 
@@ -46,7 +46,7 @@ contract SnapshotSourceSnapshotDataTest is CommonTest {
         snapshotSource.snapshotData();
 
         // Verify the latest data got snapshotted.
-        MockSnapshotSourceAdapter.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
+        SnapshotSourceLib.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
         assertTrue(snapshot.answer == 200 && snapshot.timestamp == 2000);
     }
 
@@ -56,11 +56,11 @@ contract SnapshotSourceSnapshotDataTest is CommonTest {
         snapshotSource.snapshotData();
 
         // Verify snapshotted data.
-        MockSnapshotSourceAdapter.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
+        SnapshotSourceLib.Snapshot memory snapshot = snapshotSource.latestSnapshotData();
         assertTrue(snapshot.answer == 100 && snapshot.timestamp == 1000);
 
         // The first snapshots element should match the latest snapshot data.
-        (int256 snapshotAnswer, uint256 snapshotTimestamp) = snapshotSource.snapshots(0);
+        (int256 snapshotAnswer, uint256 snapshotTimestamp) = snapshotSource.mockSnapshots(0);
         assertTrue(snapshotAnswer == 100 && snapshotTimestamp == 1000);
 
         // Publish and snapshot the same source data again.
@@ -69,7 +69,7 @@ contract SnapshotSourceSnapshotDataTest is CommonTest {
 
         // Verify that the snapshotting did not store any new data (snapshots array still holds one element).
         vm.expectRevert();
-        snapshotSource.snapshots(1);
+        snapshotSource.mockSnapshots(1);
 
         // latestSnapshotData should return the same data.
         snapshot = snapshotSource.latestSnapshotData();

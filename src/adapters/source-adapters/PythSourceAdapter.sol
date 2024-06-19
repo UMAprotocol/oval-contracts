@@ -2,15 +2,18 @@
 pragma solidity 0.8.17;
 
 import {IPyth} from "../../interfaces/pyth/IPyth.sol";
-import {SnapshotSource} from "./SnapshotSource.sol";
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
+import {SnapshotSourceLib} from "../lib/SnapshotSourceLib.sol";
 import {DecimalLib} from "../lib/DecimalLib.sol";
 
 /**
  * @title PythSourceAdapter contract to read data from Pyth and standardize it for Oval.
  */
-abstract contract PythSourceAdapter is SnapshotSource {
+abstract contract PythSourceAdapter is DiamondRootOval {
     IPyth public immutable PYTH_SOURCE;
     bytes32 public immutable PYTH_PRICE_ID;
+
+    SnapshotSourceLib.Snapshot[] public pythSnapshots; // Historical answer and timestamp snapshots.
 
     event SourceSet(address indexed sourceOracle, bytes32 indexed pythPriceId);
 
@@ -19,6 +22,14 @@ abstract contract PythSourceAdapter is SnapshotSource {
         PYTH_PRICE_ID = _pythPriceId;
 
         emit SourceSet(address(_pyth), _pythPriceId);
+    }
+
+    /**
+     * @notice Snapshot the current source data.
+     */
+    function snapshotData() public virtual override {
+        (int256 latestAnswer, uint256 latestTimestamp) = PythSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.snapshotData(pythSnapshots, latestAnswer, latestTimestamp);
     }
 
     /**
@@ -44,7 +55,7 @@ abstract contract PythSourceAdapter is SnapshotSource {
     /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
-     * @dev Pyth does not support historical lookups so this uses SnapshotSource to get historic data.
+     * @dev Pyth does not support historical lookups so this uses SnapshotSourceLib to get historic data.
      * @param timestamp The timestamp to try getting latest data at.
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
@@ -58,7 +69,10 @@ abstract contract PythSourceAdapter is SnapshotSource {
         override
         returns (int256, uint256, uint256)
     {
-        Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
+        (int256 latestAnswer, uint256 latestTimestamp) = PythSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            pythSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
+        );
         return (snapshot.answer, snapshot.timestamp, 1);
     }
 

@@ -6,10 +6,10 @@ import {SignedMath} from "openzeppelin-contracts/contracts/utils/math/SignedMath
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
 import {IMedian} from "../../interfaces/chronicle/IMedian.sol";
 import {IPyth} from "../../interfaces/pyth/IPyth.sol";
+import {SnapshotSourceLib} from "../lib/SnapshotSourceLib.sol";
 import {ChainlinkSourceAdapter} from "./ChainlinkSourceAdapter.sol";
 import {ChronicleMedianSourceAdapter} from "./ChronicleMedianSourceAdapter.sol";
 import {PythSourceAdapter} from "./PythSourceAdapter.sol";
-import {SnapshotSource} from "./SnapshotSource.sol";
 
 /**
  * @title BoundedUnionSourceAdapter contract to read data from multiple sources and return the newest, contingent on it
@@ -25,7 +25,19 @@ abstract contract BoundedUnionSourceAdapter is
     ChronicleMedianSourceAdapter,
     PythSourceAdapter
 {
+    // Pack all source data into a struct to avoid stack too deep errors.
+    struct AllSourceData {
+        int256 clAnswer;
+        uint256 clTimestamp;
+        int256 crAnswer;
+        uint256 crTimestamp;
+        int256 pyAnswer;
+        uint256 pyTimestamp;
+    }
+
     uint256 public immutable BOUNDING_TOLERANCE;
+
+    SnapshotSourceLib.Snapshot[] public boundedUnionSnapshots; // Historical answer and timestamp snapshots.
 
     constructor(
         IAggregatorV3Source chainlink,
@@ -48,11 +60,8 @@ abstract contract BoundedUnionSourceAdapter is
         override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
         returns (int256 answer, uint256 timestamp)
     {
-        (int256 clAnswer, uint256 clTimestamp) = ChainlinkSourceAdapter.getLatestSourceData();
-        (int256 crAnswer, uint256 crTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
-        (int256 pyAnswer, uint256 pyTimestamp) = PythSourceAdapter.getLatestSourceData();
-
-        return _selectBoundedPrice(clAnswer, clTimestamp, crAnswer, crTimestamp, pyAnswer, pyTimestamp);
+        AllSourceData memory data = _getAllLatestSourceData();
+        return _selectBoundedPrice(data);
     }
 
     /**
@@ -72,13 +81,15 @@ abstract contract BoundedUnionSourceAdapter is
     }
 
     /**
-     * @notice Snapshots is a no-op for this adapter as its never used.
+     * @notice Snapshot the current bounded union source data.
      */
-    function snapshotData() public override(ChainlinkSourceAdapter, SnapshotSource) {}
+    function snapshotData() public override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter) {
+        (int256 latestAnswer, uint256 latestTimestamp) = BoundedUnionSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.snapshotData(boundedUnionSnapshots, latestAnswer, latestTimestamp);
+    }
 
     /**
-     * @notice Tries getting latest data as of requested timestamp. Note that for all historic lookups we simply return
-     * the Chainlink data as this is the only supported source that has historical data.
+     * @notice Tries getting latest data as of requested timestamp.
      * @param timestamp The timestamp to try getting latest data at.
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
@@ -91,31 +102,52 @@ abstract contract BoundedUnionSourceAdapter is
         override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter)
         returns (int256, uint256, uint256)
     {
+        // In the happy path there have been no source updates since requested time, so we can return the latest data.
+        AllSourceData memory data = _getAllLatestSourceData();
+        (int256 boundedAnswer, uint256 boundedTimestamp) = _selectBoundedPrice(data);
+        if (boundedTimestamp <= timestamp) return (boundedAnswer, boundedTimestamp, 1);
+
         // Chainlink has price history, so use tryLatestDataAt to pull the most recent price that satisfies the timestamp constraint.
-        (int256 clAnswer, uint256 clTimestamp,) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
+        (data.clAnswer, data.clTimestamp,) = ChainlinkSourceAdapter.tryLatestDataAt(timestamp, maxTraversal);
 
-        // For Chronicle and Pyth, just pull the most recent prices and drop them if they don't satisfy the constraint.
-        (int256 crAnswer, uint256 crTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
-        (int256 pyAnswer, uint256 pyTimestamp) = PythSourceAdapter.getLatestSourceData();
-
-        // To "drop" Chronicle and Pyth, we set their timestamps to 0 (as old as possible) if they are too recent.
+        // "Drop" Chronicle and/or Pyth by setting their timestamps to 0 (as old as possible) if they are too recent.
         // This means that they will never be used if either or both are 0.
-        if (crTimestamp > timestamp) crTimestamp = 0;
-        if (pyTimestamp > timestamp) pyTimestamp = 0;
+        if (data.crTimestamp > timestamp) data.crTimestamp = 0;
+        if (data.pyTimestamp > timestamp) data.pyTimestamp = 0;
 
-        (int256 boundedAnswer, uint256 boundedTimestamp) =
-            _selectBoundedPrice(clAnswer, clTimestamp, crAnswer, crTimestamp, pyAnswer, pyTimestamp);
-        return (boundedAnswer, boundedTimestamp, 1);
+        // Bounded union prices could have been captured at snapshot that satisfies time constraint.
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            boundedUnionSnapshots, boundedAnswer, boundedTimestamp, timestamp, maxTraversal, maxAge()
+        );
+
+        // Update bounded data with constrained source data.
+        (boundedAnswer, boundedTimestamp) = _selectBoundedPrice(data);
+
+        // Return bounded data unless there is a newer snapshotted data that still satisfies time constraint.
+        if (boundedTimestamp > snapshot.timestamp || snapshot.timestamp > timestamp) {
+            return (boundedAnswer, boundedTimestamp, 1);
+        }
+        return (snapshot.answer, snapshot.timestamp, 1);
+    }
+
+    // Internal helper to get the latest data from all sources.
+    function _getAllLatestSourceData() internal view returns (AllSourceData memory) {
+        AllSourceData memory data;
+        (data.clAnswer, data.clTimestamp) = ChainlinkSourceAdapter.getLatestSourceData();
+        (data.crAnswer, data.crTimestamp) = ChronicleMedianSourceAdapter.getLatestSourceData();
+        (data.pyAnswer, data.pyTimestamp) = PythSourceAdapter.getLatestSourceData();
+
+        return data;
     }
 
     // Selects the appropriate price from the three sources based on the bounding tolerance and logic.
-    function _selectBoundedPrice(int256 cl, uint256 clT, int256 cr, uint256 crT, int256 py, uint256 pyT)
-        internal
-        view
-        returns (int256, uint256)
-    {
+    function _selectBoundedPrice(AllSourceData memory data) internal view returns (int256, uint256) {
         int256 newestVal = 0;
         uint256 newestT = 0;
+
+        // Unpack the data to short named variables for better code readability below.
+        (int256 cl, uint256 clT, int256 cr, uint256 crT, int256 py, uint256 pyT) =
+            (data.clAnswer, data.clTimestamp, data.crAnswer, data.crTimestamp, data.pyAnswer, data.pyTimestamp);
 
         // For each price, check if it is within tolerance of the other two. If so, check if it is the newest.
         if (pyT > newestT && (_withinTolerance(py, cr) || _withinTolerance(py, cl))) (newestVal, newestT) = (py, pyT);

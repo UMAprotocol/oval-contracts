@@ -7,7 +7,6 @@ import {IPyth} from "../../interfaces/pyth/IPyth.sol";
 import {ChainlinkSourceAdapter} from "./ChainlinkSourceAdapter.sol";
 import {ChronicleMedianSourceAdapter} from "./ChronicleMedianSourceAdapter.sol";
 import {PythSourceAdapter} from "./PythSourceAdapter.sol";
-import {SnapshotSource} from "./SnapshotSource.sol";
 
 /**
  * @title UnionSourceAdapter contract to read data from multiple sources and return the newest.
@@ -61,8 +60,9 @@ abstract contract UnionSourceAdapter is ChainlinkSourceAdapter, ChronicleMedianS
     /**
      * @notice Snapshots data from all sources that require it.
      */
-    function snapshotData() public override(ChainlinkSourceAdapter, SnapshotSource) {
-        SnapshotSource.snapshotData();
+    function snapshotData() public override(ChainlinkSourceAdapter, ChronicleMedianSourceAdapter, PythSourceAdapter) {
+        ChronicleMedianSourceAdapter.snapshotData();
+        PythSourceAdapter.snapshotData();
     }
 
     /**

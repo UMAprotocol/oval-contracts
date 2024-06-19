@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
 import {DecimalLib} from "../lib/DecimalLib.sol";
-import {SnapshotSource} from "./SnapshotSource.sol";
+import {SnapshotSourceLib} from "../lib/SnapshotSourceLib.sol";
 import {IAggregatorV3Source} from "../../interfaces/chainlink/IAggregatorV3Source.sol";
 import {IUniswapAnchoredView} from "../../interfaces/compound/IUniswapAnchoredView.sol";
 import {IValidatorProxy} from "../../interfaces/compound/IValidatorProxy.sol";
@@ -11,12 +12,14 @@ import {IValidatorProxy} from "../../interfaces/compound/IValidatorProxy.sol";
  * @title UniswapAnchoredViewSourceAdapter contract to read data from UniswapAnchoredView and standardize it for Oval.
  *
  */
-abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
+abstract contract UniswapAnchoredViewSourceAdapter is DiamondRootOval {
     IUniswapAnchoredView public immutable UNISWAP_ANCHORED_VIEW;
     address public immutable C_TOKEN;
     uint8 public immutable SOURCE_DECIMALS;
 
     IAggregatorV3Source public aggregator;
+
+    SnapshotSourceLib.Snapshot[] public uniswapAnchoredViewSnapshots; // Historical answer and timestamp snapshots.
 
     event SourceSet(address indexed sourceOracle, address indexed cToken, uint8 indexed sourceDecimals);
     event AggregatorSet(address indexed aggregator);
@@ -52,6 +55,14 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
     }
 
     /**
+     * @notice Snapshot the current source data.
+     */
+    function snapshotData() public virtual override {
+        (int256 latestAnswer, uint256 latestTimestamp) = UniswapAnchoredViewSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.snapshotData(uniswapAnchoredViewSnapshots, latestAnswer, latestTimestamp);
+    }
+
+    /**
      * @notice Returns the latest data from the source.
      * @return answer The latest answer in 18 decimals.
      * @return updatedAt The timestamp of the answer.
@@ -75,7 +86,7 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
     /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
-     * @dev UniswapAnchoredView does not support historical lookups so this uses SnapshotSource to get historic data.
+     * @dev UniswapAnchoredView does not support historical lookups so this uses SnapshotSourceLib to get historic data.
      * @param timestamp The timestamp to try getting latest data at.
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
@@ -88,7 +99,10 @@ abstract contract UniswapAnchoredViewSourceAdapter is SnapshotSource {
         override
         returns (int256, uint256, uint256)
     {
-        Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
+        (int256 latestAnswer, uint256 latestTimestamp) = UniswapAnchoredViewSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            uniswapAnchoredViewSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
+        );
         return (snapshot.answer, snapshot.timestamp, 1);
     }
 }

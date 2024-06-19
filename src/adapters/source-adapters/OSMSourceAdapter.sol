@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
-import {SnapshotSource} from "./SnapshotSource.sol";
+import {DiamondRootOval} from "../../DiamondRootOval.sol";
+import {SnapshotSourceLib} from "../lib/SnapshotSourceLib.sol";
 import {IOSM} from "../../interfaces/makerdao/IOSM.sol";
 
 /**
  * @title OSMSourceAdapter contract to read data from MakerDAO OSM and standardize it for Oval.
  */
-abstract contract OSMSourceAdapter is SnapshotSource {
+abstract contract OSMSourceAdapter is DiamondRootOval {
     IOSM public immutable osmSource;
 
     // MakerDAO performs decimal conversion in collateral adapter contracts, so all oracle prices are expected to have
     // 18 decimals and we can skip decimal conversion.
     uint8 public constant decimals = 18;
+
+    SnapshotSourceLib.Snapshot[] public osmSnapshots; // Historical answer and timestamp snapshots.
 
     event SourceSet(address indexed sourceOracle);
 
@@ -20,6 +23,14 @@ abstract contract OSMSourceAdapter is SnapshotSource {
         osmSource = source;
 
         emit SourceSet(address(source));
+    }
+
+    /**
+     * @notice Snapshot the current source data.
+     */
+    function snapshotData() public virtual override {
+        (int256 latestAnswer, uint256 latestTimestamp) = OSMSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.snapshotData(osmSnapshots, latestAnswer, latestTimestamp);
     }
 
     /**
@@ -44,7 +55,7 @@ abstract contract OSMSourceAdapter is SnapshotSource {
     /**
      * @notice Tries getting latest data as of requested timestamp. If this is not possible, returns the earliest data
      * available past the requested timestamp within provided traversal limitations.
-     * @dev OSM does not support historical lookups so this uses SnapshotSource to get historic data.
+     * @dev OSM does not support historical lookups so this uses SnapshotSourceLib to get historic data.
      * @param timestamp The timestamp to try getting latest data at.
      * @param maxTraversal The maximum number of rounds to traverse when looking for historical data.
      * @return answer The answer as of requested timestamp, or earliest available data if not available, in 18 decimals.
@@ -57,7 +68,10 @@ abstract contract OSMSourceAdapter is SnapshotSource {
         override
         returns (int256, uint256, uint256)
     {
-        Snapshot memory snapshot = _tryLatestDataAt(timestamp, maxTraversal);
+        (int256 latestAnswer, uint256 latestTimestamp) = OSMSourceAdapter.getLatestSourceData();
+        SnapshotSourceLib.Snapshot memory snapshot = SnapshotSourceLib._tryLatestDataAt(
+            osmSnapshots, latestAnswer, latestTimestamp, timestamp, maxTraversal, maxAge()
+        );
         return (snapshot.answer, snapshot.timestamp, 1);
     }
 }

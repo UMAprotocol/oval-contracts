@@ -37,7 +37,7 @@ contract OvalCoinbase is MutableUnlockersController, CoinbaseSourceAdapter, Chai
  * mutability choices are desired.
  */
 contract StandardCoinbaseFactory is Ownable, BaseFactory {
-    IAggregatorV3SourceCoinbase immutable SOURCE;
+    IAggregatorV3SourceCoinbase public immutable SOURCE;
 
     constructor(IAggregatorV3SourceCoinbase _source, uint256 _maxTraversal, address[] memory _defaultUnlockers)
         BaseFactory(_maxTraversal, _defaultUnlockers)
